@@ -1,15 +1,12 @@
 {\rtf1\ansi\ansicpg1252\cocoartf2639
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 .AppleSystemUIFontMonospaced-Regular;}
-{\colortbl;\red255\green255\blue255;\red127\green134\blue144;\red12\green14\blue18;}
-{\*\expandedcolortbl;;\cssrgb\c56863\c59608\c63137;\cssrgb\c5098\c6667\c9020;}
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red127\green134\blue144;}
+{\*\expandedcolortbl;;\cssrgb\c56863\c59608\c63137;}
 \margl1440\margr1440\vieww11520\viewh8400\viewkind0
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
 \f0\fs24 \cf0 // Reemplaza URL_DEL_SCRIPT con la URL de tu script de Google Apps.\
-const URL_DEL_SCRIPT = "
-\f1 \cf2 \cb3 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 hardaviox.github.io
-\f0 \cf0 \cb1 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 ";\
+const URL_DEL_SCRIPT = https://script.google.com/macros/s/AKfycbzRBOLf1q6Q8_SqtMtV7iKI_ChRHFeLPylo15RSbou6O4XSDC5UYjy76UJUH-NoisMT/exec;\
 \
 window.onload = function() \{\
   cargarUsuarios();\
