@@ -15,7 +15,7 @@ function doPost(e) {
   try {
     var params = JSON.parse(e.postData.contents);
     var usuario = params.usuario || "";
-    var ubicacion = params.ubicacion || ""; // Now a string (ID only)
+    var ubicacion = params.ubicacion || ""; // String ID
     var tipo = params.tipo || "";
     var timestamp = params.timestamp || new Date().toISOString();
 
@@ -38,7 +38,7 @@ function registrarCheck(usuario, ubicacion, tipo, timestamp) {
     sheet.appendRow(["ID de Registro", "Usuario", "Ubicacion", "Fecha", "Hora", "Tipo"]);
   }
   var lastId = sheet.getLastRow() > 1 ? sheet.getRange(sheet.getLastRow(), 1).getValue() : 0;
-  var newId = lastId + 1;
+  var newId = Number(lastId) + 1; // Ensure numeric ID
   var fechaHora = new Date(timestamp);
   var fecha = Utilities.formatDate(fechaHora, Session.getScriptTimeZone(), "yyyy-MM-dd");
   var hora = Utilities.formatDate(fechaHora, Session.getScriptTimeZone(), "HH:mm:ss");
@@ -62,7 +62,7 @@ function verificarLogin(username, password) {
   var sheet = ss.getSheetByName("Users") || ss.insertSheet("Users");
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(["Username", "Password"]);
-    sheet.appendRow(["user1", "pass1"]); // Example user
+    sheet.appendRow(["user1", "pass1"]);
     sheet.appendRow(["user2", "pass2"]);
   }
   var data = sheet.getDataRange().getValues();
