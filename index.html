@@ -1,26 +1,141 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Check-in/Check-out</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
-</head>
-<body>
-    <div class="container">
-        <h1>Check-in/Check-out</h1>
-        <form id="checkForm">
-            <label for="usuarioInput">Nombre del Usuario:</label>
-            <input type="text" id="usuarioInput" name="usuarioInput" placeholder="Nombre del usuario">
-            <button type="button" id="registrarNombre">Registrar Nombre</button>
-            <button type="button" id="scanQR">Escanear QR de Ubicación</button>
-            <video id="scanner-container" autoplay playsinline></video>
-            <div id="qrResult"></div>
-            <button type="button" class="custom-button check-in" onclick="registrar('Check-in')">Check-in</button>
-            <button type="button" class="custom-button check-out" onclick="registrar('Check-out')">Check-out</button>
-        </form>
-    </div>
-    <script src="script.js"></script>
-</body>
-</html>
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbyq1bRRwEFD81U4OiIArX995N8sHmGPUshVgNxovhgcHos_liyCczh_GqSfEi3eVyyz/exec";
+let ubicacionEncontrada = null;
+let nombreRegistrado = null;
+let codeReader = null;
+let tiempoCheckIn = null;
+
+// Registrar nombre del usuario
+document.getElementById("registrarNombre").addEventListener("click", () => {
+    const nombreUsuario = document.getElementById("usuarioInput").value.trim();
+    if (nombreUsuario) {
+        nombreRegistrado = nombreUsuario;
+        alert("Nombre registrado: " + nombreUsuario);
+    } else {
+        alert("Por favor, ingrese el nombre del usuario.");
+    }
+});
+
+// Escanear QR
+document.getElementById("scanQR").addEventListener("click", () => {
+    if (!codeReader) {
+        codeReader = new ZXing.BrowserQRCodeReader();
+    } else {
+        codeReader.reset(); // Reiniciar el lector si ya existe
+    }
+
+    const videoElement = document.getElementById("scanner-container");
+    codeReader.decodeFromInputVideoDevice(undefined, 'scanner-container').then((result) => {
+        console.log("Código QR leído:", result.text);
+        fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`)
+            .then(response => response.json())
+            .then(ubicaciones => {
+                console.log("Lista de ubicaciones:", ubicaciones);
+                const ubicacion = ubicaciones.find(u => u.id === result.text);
+                if (ubicacion) {
+                    document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion} - ID: ${ubicacion.id}`;
+                    ubicacionEncontrada = ubicacion;
+                    codeReader.reset(); // Detener la cámara
+                    videoElement.style.display = "none"; // Ocultar el video
+                    mostrarImagenQR(result.text); // Mostrar imagen del QR
+                } else {
+                    document.getElementById("qrResult").textContent = "Ubicación no encontrada.";
+                    ubicacionEncontrada = null;
+                }
+            })
+            .catch(error => {
+                console.error("Error obteniendo ubicaciones:", error);
+                document.getElementById("qrResult").textContent = "Error al obtener ubicaciones.";
+            });
+    }).catch(err => {
+        console.error("Error al escanear QR:", err);
+        document.getElementById("qrResult").textContent = "Error al escanear el QR.";
+    });
+});
+
+// Mostrar imagen del QR en lugar de la cámara
+function mostrarImagenQR(texto) {
+    const qrImageUrl = `https://quickchart.io/qr?size=150x150&text=${encodeURIComponent(texto)}`;
+    const videoElement = document.getElementById("scanner-container");
+    const qrImage = document.createElement("img");
+    qrImage.src = qrImageUrl;
+    qrImage.style.width = "150px";
+    qrImage.style.height = "150px";
+    videoElement.parentNode.insertBefore(qrImage, videoElement.nextSibling); // Insertar después del video
+}
+
+// Registrar check-in o check-out
+function registrar(tipo) {
+    if (!nombreRegistrado || !ubicacionEncontrada) {
+        alert("Por favor, registre el nombre del usuario y escanee el código QR de la ubicación.");
+        return;
+    }
+
+    const tiempoActual = new Date();
+    let payload = {
+        usuario: nombreRegistrado,
+        ubicacion: ubicacionEncontrada,
+        tipo: tipo,
+        timestamp: tiempoActual.toISOString()
+    };
+
+    if (tipo === "Check-in") {
+        tiempoCheckIn = tiempoActual;
+        alert("Check-in iniciado en: " + tiempoCheckIn.toLocaleTimeString());
+    } else if (tipo === "Check-out") {
+        if (!tiempoCheckIn) {
+            alert("Primero debe realizar un Check-in.");
+            return;
+        }
+        const tiempoCheckOut = tiempoActual;
+        const tiempoTranscurrido = tiempoCheckOut - tiempoCheckIn;
+        payload.tiempoTranscurrido = formatTiempoTranscurrido(tiempoTranscurrido);
+        alert("Check-out finalizado en: " + tiempoCheckOut.toLocaleTimeString() + "\nTiempo transcurrido: " + payload.tiempoTranscurrido);
+    }
+
+    fetch(URL_DEL_SCRIPT, {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.result === "success") {
+            alert("Registro exitoso.");
+            if (tipo === "Check-out") {
+                resetApp(); // Reiniciar la aplicación tras check-out
+            }
+        } else {
+            alert("Error al registrar: " + (data.message || "Desconocido"));
+        }
+    })
+    .catch(error => {
+        console.error("Error en la solicitud:", error);
+        alert("Error al conectar con el servidor.");
+    });
+}
+
+// Formatear tiempo transcurrido
+function formatTiempoTranscurrido(tiempo) {
+    const segundos = Math.floor(tiempo / 1000) % 60;
+    const minutos = Math.floor(tiempo / (1000 * 60)) % 60;
+    const horas = Math.floor(tiempo / (1000 * 60 * 60));
+    return `${horas}h ${minutos}m ${segundos}s`;
+}
+
+// Reiniciar la aplicación
+function resetApp() {
+    nombreRegistrado = null;
+    ubicacionEncontrada = null;
+    tiempoCheckIn = null;
+    document.getElementById("usuarioInput").value = "";
+    document.getElementById("qrResult").textContent = "";
+    const videoElement = document.getElementById("scanner-container");
+    videoElement.style.display = "block"; // Mostrar el video nuevamente
+    const qrImage = videoElement.nextSibling;
+    if (qrImage && qrImage.tagName === "IMG") {
+        qrImage.remove(); // Eliminar la imagen del QR
+    }
+    if (codeReader) {
+        codeReader.reset();
+    }
+}
