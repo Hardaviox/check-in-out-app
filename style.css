@@ -8,7 +8,7 @@
 \f0\fs24 \cf0 body \{\
   font-family: sans-serif;\
   text-align: center;\
-  background-color: #f4f4f4; /* Fondo gris claro */\
+  background-color: #f4f4f4;\
   margin: 0;\
   padding: 20px;\
 \}\
@@ -34,7 +34,7 @@ label \{\
 \}\
 \
 select \{\
-  width: calc(100% - 12px); /* Ajuste para el padding */\
+  width: 100%;\
   padding: 8px;\
   margin-bottom: 15px;\
   border: 1px solid #ccc;\
@@ -50,25 +50,24 @@ button \{\
   border-radius: 4px;\
   cursor: pointer;\
   margin: 5px;\
-  width: calc(50% - 10px); /* Ajuste para el margen */\
+  width: 48%;\
 \}\
 \
 button:hover \{\
   background-color: #3e8e41;\
 \}\
 \
-/* Estilos para dispositivos m\'f3viles */\
 @media (max-width: 480px) \{\
   form \{\
     width: 90%;\
   \}\
-\
   button \{\
     width: 100%;\
   \}\
 \}\
+\
 .custom-button \{\
-  background-color: #007bff; /* Azul */\
+  background-color: #007bff;\
   color: white;\
   padding: 10px 20px;\
   border: none;\
@@ -76,25 +75,13 @@ button:hover \{\
   cursor: pointer;\
   font-size: 16px;\
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);\
-  transition: background-color 0.3s ease; /* Transici\'f3n suave */\
+  transition: background-color 0.3s ease;\
 \}\
 \
 .custom-button:hover \{\
-  background-color: #0056b3; /* Azul m\'e1s oscuro */\
+  background-color: #0056b3;\
 \}\
 \
 .custom-button.check-in \{\
-  background-color: #28a745; /* Verde */\
-\}\
-\
-.custom-button.check-in:hover \{\
-  background-color: #218838; /* Verde m\'e1s oscuro */\
-\}\
-\
-.custom-button.check-out \{\
-  background-color: #dc3545; /* Rojo */\
-\}\
-\
-.custom-button.check-out:hover \{\
-  background-color: #c82333; /* Rojo m\'e1s oscuro */\
-\}}
+  background-color: #28\
+}
