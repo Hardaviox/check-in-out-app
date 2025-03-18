@@ -3,73 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Check-In/Check-Out App</title>
-    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <title>Check In/Out App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px;
-            margin: 0;
-            background-color: #f0f0f0;
-        }
-        input, button {
-            width: 90%;
-            max-width: 300px;
-            padding: 10px;
-            margin: 5px 0;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
-        }
-        button:disabled {
-            background-color: #cccccc;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 10px; }
+        h1 { color: #333; }
+        button, input { margin: 5px; padding: 10px; font-size: 16px; width: 200px; }
         #scanner-container {
-            width: 100%;
-            max-width: 300px;
+            width: 300px;
             height: 300px;
-            border: 2px solid #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 10px 0;
-            background-color: #fff;
+            border: 1px solid black;
+            margin: 10px auto;
+            display: none; /* Hidden until scanning starts */
         }
-        #scanner-container video, #scanner-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-        #qrResult, #timerDisplay {
-            font-size: 16px;
-            text-align: center;
-            margin: 10px 0;
-            color: #333;
-        }
-        @media (max-width: 600px) {
-            body { padding: 5px; }
-            input, button { font-size: 14px; }
-        }
+        #scanner-container video { width: 100%; height: 100%; }
+        #qrResult { color: #333; }
+        #loginSection { display: block; }
+        #appSection { display: none; }
     </style>
 </head>
 <body>
-    <input id="usuarioInput" type="text" placeholder="Ingrese su nombre">
-    <button id="registrarNombre">Registrar Nombre</button>
-    <button id="scanQR">Escanear QR</button>
-    <div id="scanner-container"><video></video></div>
-    <p id="qrResult"></p>
-    <button id="checkInBtn">Check-in</button>
-    <button id="checkOutBtn">Check-out</button>
-    <p id="timerDisplay"></p>
+    <h1>Check In/Out App</h1>
 
-    <script src="app.js"></script> <!-- Link to your JS file -->
+    <!-- Login Section -->
+    <div id="loginSection">
+        <input id="usernameInput" type="text" placeholder="Usuario">
+        <input id="passwordInput" type="password" placeholder="Contraseña">
+        <button id="loginBtn">Iniciar Sesión</button>
+        <p id="loginError"></p>
+    </div>
+
+    <!-- App Section -->
+    <div id="appSection">
+        <p id="welcomeMessage"></p>
+        <button id="scanQR">Escanear QR</button>
+        <div id="scanner-container"></div>
+        <p id="qrResult"></p>
+        <button id="checkInBtn">Check-in</button>
+        <button id="checkOutBtn">Check-out</button>
+        <button id="logoutBtn">Cerrar Sesión</button>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
