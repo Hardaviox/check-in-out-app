@@ -1,4 +1,4 @@
-const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbzWhmDvNfrtFdC3ydaB1Si6SY5tHpSk0Xc7AiqkYPhBCuJfb7n2Z8ZsOqvITqA8JMBi/exec";
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbyq1bRRwEFD81U4OiIArX995N8sHmGPUshVgNxovhgcHos_liyCczh_GqSfEi3eVyyz/exec";
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
 let codeReader = null;
@@ -77,6 +77,13 @@ function mostrarImagenQR(texto) {
 
 function registrar(tipo) {
     if (nombreRegistrado && ubicacionEncontrada) {
+        // Validación adicional
+        if (!ubicacionEncontrada || !ubicacionEncontrada.id) {
+            console.error("Error: ubicacionEncontrada no tiene la propiedad 'id'.", ubicacionEncontrada);
+            alert("Error: Ubicación no válida.");
+            return; // Detener la ejecución si la ubicación no es válida
+        }
+
         if (tipo === "Check-in") {
             tiempoCheckIn = new Date();
             alert("Check-in iniciado en: " + tiempoCheckIn.toLocaleTimeString());
@@ -120,8 +127,4 @@ function registrar(tipo) {
 }
 
 function formatTiempoTranscurrido(tiempo) {
-    const segundos = Math.floor(tiempo / 1000) % 60;
-    const minutos = Math.floor(tiempo / (1000 * 60)) % 60;
-    const horas = Math.floor(tiempo / (1000 * 60 * 60));
-    return `${horas}h ${minutos}m ${segundos}s`;
-}
+    const segundos = Math.floor(tiempo
