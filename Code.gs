@@ -2,25 +2,6 @@ function doGet(e) {
   return HtmlService.createHtmlOutputFromFile('index');
 }
 
-function buscarUsuario(e) {
-  var nombre = decodeURIComponent(e.parameter.nombre);
-  Logger.log("Nombre del usuario recibido: " + nombre);
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var usuariosSheet = ss.getSheetByName("Usuarios");
-  var lastRow = usuariosSheet.getLastRow();
-  var usuarios = usuariosSheet.getRange(2, 1, lastRow - 1, 1).getValues();
-  Logger.log("Usuarios encontrados: " + JSON.stringify(usuarios));
-  for (var i = 0; i < usuarios.length; i++) {
-    Logger.log("Usuario en fila " + (i + 2) + ": " + usuarios[i][0]);
-    if (usuarios[i][0] === nombre) {
-      Logger.log("Usuario encontrado: " + usuarios[i][0]);
-      return ContentService.createTextOutput(JSON.stringify({ usuario: nombre })).setMimeType(ContentService.MimeType.JSON);
-    }
-  }
-  Logger.log("Usuario no encontrado.");
-  return ContentService.createTextOutput(JSON.stringify({ usuario: null })).setMimeType(ContentService.MimeType.JSON);
-}
-
 function obtenerUbicacionQR(e) {
   var codigo = decodeURIComponent(e.parameter.codigo);
   Logger.log("Código QR recibido: " + codigo);
