@@ -84,6 +84,8 @@ function registrar(tipo) {
             return; // Detener la ejecución si la ubicación no es válida
         }
 
+        console.log("UbicacionEncontrada antes de enviar:", ubicacionEncontrada); // Registro en JavaScript
+
         if (tipo === "Check-in") {
             tiempoCheckIn = new Date();
             alert("Check-in iniciado en: " + tiempoCheckIn.toLocaleTimeString());
@@ -127,4 +129,8 @@ function registrar(tipo) {
 }
 
 function formatTiempoTranscurrido(tiempo) {
-    const segundos = Math.floor(tiempo
+    const segundos = Math.floor(tiempo / 1000) % 60;
+    const minutos = Math.floor(tiempo / (1000 * 60)) % 60;
+    const horas = Math.floor(tiempo / (1000 * 60 * 60));
+    return `${horas}h ${minutos}m ${segundos}s`;
+}
