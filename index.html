@@ -10,15 +10,15 @@
   <h1>Check-in/Check-out</h1>
   <form id="checkForm">
     <div>
-      <label id="usuarioLabel">Usuario:</label>
-      <select id="usuarioSelect" name="usuario" aria-labelledby="usuarioLabel" required>
+      <label for="usuarioSelect">Usuario:</label>
+      <select id="usuarioSelect" name="usuario" required>
         <option value="">Selecciona un usuario</option>
       </select>
     </div>
     <br>
     <div>
-      <label id="ubicacionLabel">Ubicación:</label>
-      <select id="ubicacionSelect" name="ubicacion" aria-labelledby="ubicacionLabel" required>
+      <label for="ubicacionSelect">Ubicación:</label>
+      <select id="ubicacionSelect" name="ubicacion" required>
         <option value="">Selecciona una ubicación</option>
       </select>
     </div>
@@ -59,7 +59,7 @@
           select.innerHTML = '<option value="">Selecciona una ubicación</option>';
           data.forEach(ubicacion => {
             let option = document.createElement("option");
-            option.value = ubicacion.id;
+            option.value = JSON.stringify(ubicacion); // Guarda el objeto completo como JSON string
             option.textContent = `${ubicacion.id} - ${ubicacion.direccion}`;
             select.appendChild(option);
           });
@@ -69,7 +69,7 @@
 
     function registrar(tipo) {
       const usuario = document.getElementById("usuarioSelect").value;
-      const ubicacion = document.getElementById("ubicacionSelect").value;
+      const ubicacion = JSON.parse(document.getElementById("ubicacionSelect").value); // Obtiene el objeto completo
 
       if (!usuario || !ubicacion) {
         alert("Selecciona un usuario y una ubicación");
@@ -85,8 +85,13 @@
       })
         .then(response => response.json())
         .then(responseData => {
-          console.log("Registro exitoso:", responseData);
-          alert("Registro exitoso");
+          if (responseData.result === "success") {
+            console.log("Registro exitoso:", responseData);
+            alert("Registro exitoso");
+          } else {
+            console.error("Error en el registro:", responseData.error);
+            alert("Error en el registro");
+          }
         })
         .catch(error => {
           console.error("Error en el registro:", error);
