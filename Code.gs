@@ -4,27 +4,37 @@ function doGet(e) {
 
 function buscarUsuario(e) {
   var nombre = decodeURIComponent(e.parameter.nombre);
+  Logger.log("Nombre del usuario recibido: " + nombre);
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var usuariosSheet = ss.getSheetByName("Usuarios");
-  var usuarios = usuariosSheet.getRange(1, 1, usuariosSheet.getLastRow(), 1).getValues();
+  var lastRow = usuariosSheet.getLastRow();
+  var usuarios = usuariosSheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  Logger.log("Usuarios encontrados: " + JSON.stringify(usuarios));
   for (var i = 0; i < usuarios.length; i++) {
     if (usuarios[i][0] === nombre) {
+      Logger.log("Usuario encontrado: " + usuarios[i][0]);
       return ContentService.createTextOutput(JSON.stringify({ usuario: nombre })).setMimeType(ContentService.MimeType.JSON);
     }
   }
+  Logger.log("Usuario no encontrado.");
   return ContentService.createTextOutput(JSON.stringify({ usuario: null })).setMimeType(ContentService.MimeType.JSON);
 }
 
 function obtenerUbicacionQR(e) {
   var codigo = decodeURIComponent(e.parameter.codigo);
+  Logger.log("Código QR recibido: " + codigo);
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ubicacionesSheet = ss.getSheetByName("Ubicaciones");
-  var ubicaciones = ubicacionesSheet.getRange(1, 1, ubicacionesSheet.getLastRow(), 2).getValues();
+  var lastRow = ubicacionesSheet.getLastRow();
+  var ubicaciones = ubicacionesSheet.getRange(2, 1, lastRow - 1, 2).getValues();
+  Logger.log("Ubicaciones encontradas: " + JSON.stringify(ubicaciones));
   for (var i = 0; i < ubicaciones.length; i++) {
     if (ubicaciones[i][0] === codigo) {
+      Logger.log("Ubicación encontrada: " + ubicaciones[i][1]);
       return ContentService.createTextOutput(JSON.stringify({ ubicacion: { "Account Building ID": codigo, "Address": ubicaciones[i][1] } })).setMimeType(ContentService.MimeType.JSON);
     }
   }
+  Logger.log("Ubicación no encontrada.");
   return ContentService.createTextOutput(JSON.stringify({ ubicacion: null })).setMimeType(ContentService.MimeType.JSON);
 }
 
