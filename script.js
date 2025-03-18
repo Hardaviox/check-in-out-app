@@ -3,13 +3,16 @@ let ubicacionEncontrada = null;
 let nombreRegistrado = null;
 let codeReader = null;
 let tiempoCheckIn = null;
+let timerInterval = null;
 
-// Registrar nombre del usuario
+// Registrar nombre
 document.getElementById("registrarNombre").addEventListener("click", () => {
     const nombreUsuario = document.getElementById("usuarioInput").value.trim();
     if (nombreUsuario) {
         nombreRegistrado = nombreUsuario;
         alert("Nombre registrado: " + nombreUsuario);
+        document.getElementById("usuarioInput").disabled = true;
+        document.getElementById("registrarNombre").disabled = true;
     } else {
         alert("Por favor, ingrese el nombre del usuario.");
     }
@@ -17,25 +20,22 @@ document.getElementById("registrarNombre").addEventListener("click", () => {
 
 // Escanear QR
 document.getElementById("scanQR").addEventListener("click", () => {
-    if (!codeReader) {
-        codeReader = new ZXing.BrowserQRCodeReader();
-    } else {
-        codeReader.reset(); // Reiniciar el lector si ya existe
-    }
+    if (!codeReader) codeReader = new ZXing.BrowserQRCodeReader();
+    else codeReader.reset();
 
-    codeReader.decodeFromInputVideoDevice(undefined, 'scanner-container').then((result) => {
+    document.getElementById("scanner-container").style.display = "block";
+    codeReader.decodeFromInputVideoDevice(undefined, 'scanner-container').then(result => {
         console.log("Código QR leído:", result.text);
         fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`)
             .then(response => response.json())
             .then(ubicaciones => {
-                console.log("Lista de ubicaciones:", ubicaciones);
                 const ubicacion = ubicaciones.find(u => u.id === result.text);
                 if (ubicacion) {
-                    document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion} - ID: ${ubicacion.id}`;
                     ubicacionEncontrada = ubicacion;
-                    codeReader.reset(); // Detener la cámara
-                    document.getElementById("scanner-container").style.display = "none"; // Ocultar contenedor de cámara
-                    mostrarImagenQR(result.text); // Mostrar imagen del QR
+                    document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion} - ID: ${ubicacion.id}`;
+                    codeReader.reset();
+                    mostrarImagenQR(result.text);
+                    document.getElementById("scanQR").disabled = true;
                 } else {
                     document.getElementById("qrResult").textContent = "Ubicación no encontrada.";
                     ubicacionEncontrada = null;
@@ -51,22 +51,31 @@ document.getElementById("scanQR").addEventListener("click", () => {
     });
 });
 
-// Mostrar imagen del QR en lugar de la cámara
+// Mostrar imagen QR
 function mostrarImagenQR(texto) {
     const qrImageUrl = `https://quickchart.io/qr?size=150x150&text=${encodeURIComponent(texto)}`;
-    const qrImageContainer = document.getElementById("scanner-container");
-    qrImageContainer.innerHTML = ""; // Limpiar el contenedor
+    const container = document.getElementById("scanner-container");
+    container.innerHTML = "";
     const qrImage = document.createElement("img");
     qrImage.src = qrImageUrl;
-    qrImage.style.width = "150px";
-    qrImage.style.height = "150px";
-    qrImageContainer.appendChild(qrImage);
+    qrImage.alt = "Código QR";
+    container.appendChild(qrImage);
 }
 
-// Registrar check-in o check-out
+// Iniciar temporizador
+function startTimer() {
+    const startTime = new Date();
+    timerInterval = setInterval(() => {
+        const now = new Date();
+        const tiempoTranscurrido = now - startTime;
+        document.getElementById("timerDisplay").textContent = `Tiempo transcurrido: ${formatTiempoTranscurrido(tiempoTranscurrido)}`;
+    }, 1000);
+}
+
+// Registrar check-in/check-out
 function registrar(tipo) {
     if (!nombreRegistrado || !ubicacionEncontrada) {
-        alert("Por favor, registre el nombre del usuario y escanee el código QR de la ubicación.");
+        alert("Registre su nombre y escanee un QR primero.");
         return;
     }
 
@@ -81,11 +90,14 @@ function registrar(tipo) {
     if (tipo === "Check-in") {
         tiempoCheckIn = tiempoActual;
         alert("Check-in iniciado en: " + tiempoCheckIn.toLocaleTimeString());
+        document.getElementById("checkInBtn").disabled = true;
+        startTimer();
     } else if (tipo === "Check-out") {
         if (!tiempoCheckIn) {
             alert("Primero debe realizar un Check-in.");
             return;
         }
+        clearInterval(timerInterval);
         const tiempoCheckOut = tiempoActual;
         const tiempoTranscurrido = tiempoCheckOut - tiempoCheckIn;
         payload.tiempoTranscurrido = formatTiempoTranscurrido(tiempoTranscurrido);
@@ -101,20 +113,18 @@ function registrar(tipo) {
     .then(data => {
         if (data.result === "success") {
             alert("Registro exitoso.");
-            if (tipo === "Check-out") {
-                resetApp(); // Reiniciar la aplicación tras check-out
-            }
+            if (tipo === "Check-out") resetApp();
         } else {
             alert("Error al registrar: " + data.message);
         }
     })
     .catch(error => {
-        console.error("Error en la solicitud:", error);
+        console.error("Error:", error);
         alert("Error al conectar con el servidor.");
     });
 }
 
-// Formatear tiempo transcurrido
+// Formatear tiempo
 function formatTiempoTranscurrido(tiempo) {
     const segundos = Math.floor(tiempo / 1000) % 60;
     const minutos = Math.floor(tiempo / (1000 * 60)) % 60;
@@ -122,20 +132,24 @@ function formatTiempoTranscurrido(tiempo) {
     return `${horas}h ${minutos}m ${segundos}s`;
 }
 
-// Reiniciar la aplicación
+// Reiniciar app
 function resetApp() {
     nombreRegistrado = null;
     ubicacionEncontrada = null;
     tiempoCheckIn = null;
+    clearInterval(timerInterval);
     document.getElementById("usuarioInput").value = "";
+    document.getElementById("usuarioInput").disabled = false;
+    document.getElementById("registrarNombre").disabled = false;
+    document.getElementById("scanQR").disabled = false;
+    document.getElementById("checkInBtn").disabled = false;
+    document.getElementById("checkOutBtn").disabled = false;
     document.getElementById("qrResult").textContent = "";
-    document.getElementById("scanner-container").innerHTML = "";
-    document.getElementById("scanner-container").style.display = "block";
-    if (codeReader) {
-        codeReader.reset();
-    }
+    document.getElementById("timerDisplay").textContent = "";
+    document.getElementById("scanner-container").innerHTML = "<video></video>";
+    if (codeReader) codeReader.reset();
 }
 
-// Asignar eventos a botones de check-in/check-out (asegúrate de tener estos IDs en tu HTML)
-document.getElementById("checkInBtn")?.addEventListener("click", () => registrar("Check-in"));
-document.getElementById("checkOutBtn")?.addEventListener("click", () => registrar("Check-out"));
+// Asignar eventos
+document.getElementById("checkInBtn").addEventListener("click", () => registrar("Check-in"));
+document.getElementById("checkOutBtn").addEventListener("click", () => registrar("Check-out"));
