@@ -1,24 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Check-in/Check-out</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="quagga.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Check-in/Check-out</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="quagga.min.js"></script>
 </head>
 <body>
-  <h1>Check-in/Check-out</h1>
-  <form id="checkForm">
-    <label for="usuarioInput">Nombre del Usuario:</label>
-    <input type="text" id="usuarioInput" name="usuarioInput" placeholder="Nombre del usuario">
-    <button type="button" id="registrarNombre">Registrar Nombre</button>
-    <button type="button" id="scanQR">Escanear QR de Ubicación</button>
-    <div id="scanner-container"></div>
-    <div id="qrResult"></div>
-    <button type="button" class="custom-button check-in" onclick="registrar('Check-in')">Check-in</button>
-    <button type="button" class="custom-button check-out" onclick="registrar('Check-out')">Check-out</button>
-  </form>
-  <script src="script.js"></script>
+    <div class="container">
+        <h1>Check-in/Check-out</h1>
+        <form id="checkForm">
+            <label for="usuarioInput">Nombre del Usuario:</label>
+            <input type="text" id="usuarioInput" name="usuarioInput" placeholder="Nombre del usuario">
+            <button type="button" id="registrarNombre">Registrar Nombre</button>
+            <button type="button" id="scanQR">Escanear QR de Ubicación</button>
+            <div id="scanner-container"></div>
+            <div id="qrResult"></div>
+            <button type="button" class="custom-button check-in" onclick="registrar('Check-in')">Check-in</button>
+            <button type="button" class="custom-button check-out" onclick="registrar('Check-out')">Check-out</button>
+        </form>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
