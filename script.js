@@ -1,4 +1,4 @@
-const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbyq1bRRwEFD81U4OiIArX995N8sHmGPUshVgNxovhgcHos_liyCczh_GqSfEi3eVyyz/exec";
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbyq1bRRwEFD81U4OiIArX995N8sHmGPUshVgNxovhgcHos_liyCczh_GqSfEi3eVyyz/exec"; // Update with your actual Web App URL
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
 let tiempoCheckIn = null;
@@ -9,7 +9,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const username = document.getElementById("usernameInput").value.trim();
         const password = document.getElementById("passwordInput").value.trim();
         if (username && password) {
-            fetch(`${URL_DEL_SCRIPT}?action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`)
+            fetch(`${URL_DEL_SCRIPT}?action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, {
+                method: "GET",
+                mode: "cors"
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.result === "success") {
@@ -41,13 +44,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 name: "Live",
                 type: "LiveStream",
                 target: document.querySelector("#scanner-container video"),
-                constraints: { facingMode: "environment" } // Rear camera
+                constraints: { facingMode: "environment" }
             },
             decoder: { readers: ["qr_code_reader"] }
         }, (err) => {
             if (err) {
                 console.error("Error inicializando Quagga:", err);
                 document.getElementById("qrResult").textContent = "Error al iniciar el escáner";
+                scannerContainer.style.display = "none";
                 return;
             }
             Quagga.start();
@@ -58,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log("Código QR leído:", code);
             Quagga.stop();
             scannerContainer.style.display = "none";
-            fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`)
+            fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`, { mode: "cors" })
                 .then(response => response.json())
                 .then(ubicaciones => {
                     const ubicacion = ubicaciones.find(u => u.id === code);
@@ -121,7 +125,7 @@ function registrar(tipo) {
     const tiempoActual = new Date();
     let payload = {
         usuario: nombreRegistrado,
-        ubicacion: ubicacionEncontrada.id, // Only send ID to match sheet
+        ubicacion: ubicacionEncontrada.id, // Send only the ID
         tipo: tipo,
         timestamp: tiempoActual.toISOString()
     };
@@ -141,10 +145,14 @@ function registrar(tipo) {
 
     fetch(URL_DEL_SCRIPT, {
         method: "POST",
-        body: JSON.stringify(payload),
-        headers: { "Content-Type": "application/json" }
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+    })
     .then(data => {
         if (data.result === "success") {
             alert("Registro exitoso.");
@@ -154,8 +162,8 @@ function registrar(tipo) {
         }
     })
     .catch(error => {
-        console.error("Error:", error);
-        alert("Error al conectar con el servidor.");
+        console.error("Error en la solicitud:", error);
+        alert("Error al conectar con el servidor: " + error.message);
     });
 }
 
