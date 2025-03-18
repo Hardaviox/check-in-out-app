@@ -18,17 +18,16 @@ document.getElementById("scanQR").addEventListener("click", () => {
     if (codeReader) {
         codeReader.reset();
         codeReader.decodeFromInputVideoDevice(undefined, 'scanner-container').then((result) => {
-            console.log(result.text); // Depuración: verificar el código QR leído
+            console.log("Código QR leído:", result.text); // Depuración
             fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`)
                 .then(response => response.json())
                 .then(ubicaciones => {
-                    console.log(ubicaciones); // Depuración: verificar la lista de ubicaciones
+                    console.log("Lista de ubicaciones:", ubicaciones); // Depuración
                     let ubicacion = ubicaciones.find(u => u.id === result.text);
-                    console.log(ubicacion); // Depuración: verificar la ubicación encontrada
+                    console.log("Ubicación encontrada:", ubicacion); // Depuración
                     if (ubicacion) {
                         document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion} - ID: ${ubicacion.id}`;
                         ubicacionEncontrada = ubicacion;
-                        console.log(ubicacionEncontrada); // Depuración: verificar la asignación de ubicacionEncontrada
                         document.getElementById("scanner-container").style.display = "none"; // Ocultar la cámara
                         mostrarImagenQR(result.text); // Mostrar la imagen del código QR
                     } else {
@@ -46,17 +45,16 @@ document.getElementById("scanQR").addEventListener("click", () => {
         const hints = new Map();
         hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.QR_CODE]);
         codeReader.decodeFromInputVideoDevice(undefined, 'scanner-container', hints).then((result) => {
-            console.log(result.text); // Depuración: verificar el código QR leído
+            console.log("Código QR leído:", result.text); // Depuración
             fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`)
                 .then(response => response.json())
                 .then(ubicaciones => {
-                    console.log(ubicaciones); // Depuración: verificar la lista de ubicaciones
+                    console.log("Lista de ubicaciones:", ubicaciones); // Depuración
                     let ubicacion = ubicaciones.find(u => u.id === result.text);
-                    console.log(ubicacion); // Depuración: verificar la ubicación encontrada
+                    console.log("Ubicación encontrada:", ubicacion); // Depuración
                     if (ubicacion) {
                         document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion} - ID: ${ubicacion.id}`;
                         ubicacionEncontrada = ubicacion;
-                        console.log(ubicacionEncontrada); // Depuración: verificar la asignación de ubicacionEncontrada
                         document.getElementById("scanner-container").style.display = "none"; // Ocultar la cámara
                         mostrarImagenQR(result.text); // Mostrar la imagen del código QR
                     } else {
