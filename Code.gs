@@ -3,6 +3,8 @@ function doGet(e) {
     return obtenerUsuarios();
   } else if (e.parameter.action == "obtenerUbicaciones") {
     return obtenerUbicaciones();
+  } else if (e.parameter.action == "generarCodigosQR") {
+    return generarCodigosQR();
   } else {
     return ContentService.createTextOutput(JSON.stringify({ "message": "Invalid action" })).setMimeType(ContentService.MimeType.JSON);
   }
@@ -37,6 +39,20 @@ function registrarCheck(usuario, ubicacion, tipo) {
   sheet.appendRow([newId, usuario, ubicacion, fecha, hora, tipo]);
 }
 
+function generarCodigosQR() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Ubicaciones");
+  var data = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) {
+    var accountBuildingId = data[i][0];
+    var qrCodeUrl = "https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=" + encodeURIComponent(accountBuildingId);
+    sheet.getRange(i + 1, 3).setValue(qrCodeUrl); // Columna 3: URL del Código QR
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({ "message": "Códigos QR generados y URLs guardadas en la hoja 'Ubicaciones'." })).setMimeType(ContentService.MimeType.JSON);
+}
+
 function obtenerUbicaciones() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("Ubicaciones");
@@ -45,7 +61,8 @@ function obtenerUbicaciones() {
   for (var i = 1; i < data.length; i++) {
     ubicaciones.push({
       id: data[i][0], // Account Building ID
-      direccion: data[i][1] // Dirección
+      direccion: data[i][1], // Dirección
+      qrCodeUrl: data[i][2] // URL del Código QR
     });
   }
   return ContentService.createTextOutput(JSON.stringify(ubicaciones)).setMimeType(ContentService.MimeType.JSON);
