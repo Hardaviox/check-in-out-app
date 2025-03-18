@@ -11,6 +11,7 @@ function buscarUsuario(e) {
   var usuarios = usuariosSheet.getRange(2, 1, lastRow - 1, 1).getValues();
   Logger.log("Usuarios encontrados: " + JSON.stringify(usuarios));
   for (var i = 0; i < usuarios.length; i++) {
+    Logger.log("Usuario en fila " + (i + 2) + ": " + usuarios[i][0]);
     if (usuarios[i][0] === nombre) {
       Logger.log("Usuario encontrado: " + usuarios[i][0]);
       return ContentService.createTextOutput(JSON.stringify({ usuario: nombre })).setMimeType(ContentService.MimeType.JSON);
