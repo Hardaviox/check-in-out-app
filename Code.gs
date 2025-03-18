@@ -4,7 +4,13 @@ function doGet(e) {
     return ContentService.createTextOutput(JSON.stringify(obtenerUbicaciones()))
       .setMimeType(ContentService.MimeType.JSON);
   } else if (params.action === "login") {
-    return ContentService.createTextOutput(JSON.stringify(verificarLogin(params.username, params.password)))
+    return ContentService.createTextOutput(JSON.stringify(loginUsuario(params.username, params.password, params.ip)))
+      .setMimeType(ContentService.MimeType.JSON);
+  } else if (params.action === "register") {
+    return ContentService.createTextOutput(JSON.stringify(registrarUsuario(params.username, params.password, params.ip)))
+      .setMimeType(ContentService.MimeType.JSON);
+  } else if (params.action === "checkIp") {
+    return ContentService.createTextOutput(JSON.stringify(checkIp(params.ip)))
       .setMimeType(ContentService.MimeType.JSON);
   }
   return ContentService.createTextOutput(JSON.stringify({ "result": "error", "message": "Acción no válida" }))
@@ -15,7 +21,7 @@ function doPost(e) {
   try {
     var params = JSON.parse(e.postData.contents);
     var usuario = params.usuario || "";
-    var ubicacion = params.ubicacion || ""; // String ID
+    var ubicacion = params.ubicacion || "";
     var tipo = params.tipo || "";
     var timestamp = params.timestamp || new Date().toISOString();
 
@@ -38,7 +44,7 @@ function registrarCheck(usuario, ubicacion, tipo, timestamp) {
     sheet.appendRow(["ID de Registro", "Usuario", "Ubicacion", "Fecha", "Hora", "Tipo"]);
   }
   var lastId = sheet.getLastRow() > 1 ? sheet.getRange(sheet.getLastRow(), 1).getValue() : 0;
-  var newId = Number(lastId) + 1; // Ensure numeric ID
+  var newId = Number(lastId) + 1;
   var fechaHora = new Date(timestamp);
   var fecha = Utilities.formatDate(fechaHora, Session.getScriptTimeZone(), "yyyy-MM-dd");
   var hora = Utilities.formatDate(fechaHora, Session.getScriptTimeZone(), "HH:mm:ss");
@@ -57,15 +63,48 @@ function obtenerUbicaciones() {
   return data.slice(1).map(row => ({ id: row[0], direccion: row[1] }));
 }
 
-function verificarLogin(username, password) {
+function registrarUsuario(username, password, ip) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName("Users") || ss.insertSheet("Users");
+  var sheet = ss.getSheetByName("User") || ss.insertSheet("User");
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(["Username", "Password"]);
-    sheet.appendRow(["user1", "pass1"]);
-    sheet.appendRow(["user2", "pass2"]);
+    sheet.appendRow(["Username", "Password", "IP"]);
   }
   var data = sheet.getDataRange().getValues();
-  var user = data.slice(1).find(row => row[0] === username && row[1] === password);
-  return user ? { result: "success" } : { result: "error", "message": "Usuario o contraseña incorrectos" };
+  var existingUser = data.slice(1).find(row => row[0] === username);
+  if (existingUser) {
+    return { result: "error", message: "El usuario ya está registrado" };
+  }
+  sheet.appendRow([username, password, ip]);
+  return { result: "success" };
+}
+
+function loginUsuario(username, password, ip) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("User") || ss.insertSheet("User");
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(["Username", "Password", "IP"]);
+  }
+  var data = sheet.getDataRange().getValues();
+  var userRow = data.slice(1).find(row => row[0] === username && row[1] === password);
+  if (userRow) {
+    var rowIndex = data.indexOf(userRow) + 1;
+    sheet.getRange(rowIndex, 3).setValue(ip); // Update IP
+    return { result: "success" };
+  }
+  return { result: "error", message: "Usuario o contraseña incorrectos" };
+}
+
+function checkIp(ip) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("User") || ss.insertSheet("User");
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(["Username", "Password", "IP"]);
+    return { result: "error" };
+  }
+  var data = sheet.getDataRange().getValues();
+  var userRow = data.slice(1).find(row => row[2] === ip);
+  if (userRow) {
+    return { result: "success", username: userRow[0] };
+  }
+  return { result: "error" };
 }
