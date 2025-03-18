@@ -1,4 +1,4 @@
-const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbxl9irBRiYSJTBopxHwTV9d3D2mUplNoDRZKjtdcLGL4uz4pygcyVNtGKvrzdF8ml4/exec";
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwKZnhr6LEIijGJqQAzo0O27nNdrhylBvnlwKhGOsaxu---o8Ucvll-r_teOGIib7DQ/exec";
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
 
@@ -39,8 +39,8 @@ Quagga.onDetected(function(data) {
     .then(ubicaciones => {
       let ubicacion = ubicaciones.find(u => u.id === codigoQR);
       if (ubicacion) {
-        document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion}`;
-        ubicacionEncontrada = ubicacion.direccion;
+        document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion} - ID: ${ubicacion.id}`;
+        ubicacionEncontrada = ubicacion;
       } else {
         document.getElementById("qrResult").textContent = "Ubicación no encontrada.";
         ubicacionEncontrada = null;
