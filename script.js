@@ -2,9 +2,11 @@ const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwNZjHJ0FaQqEyl1
 
 function buscarUsuario() {
   const nombreUsuario = document.getElementById("usuarioInput").value;
+  console.log("Nombre del usuario ingresado:", nombreUsuario);
   fetch(`${URL_DEL_SCRIPT}?action=buscarUsuario&nombre=${encodeURIComponent(nombreUsuario)}`)
     .then(response => response.json())
     .then(data => {
+      console.log("Respuesta del servidor:", data);
       if (data.usuario) {
         alert(`Usuario encontrado: ${data.usuario}`);
         // Aquí puedes agregar lógica para mostrar más información del usuario
