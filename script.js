@@ -1,5 +1,16 @@
 const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwNZjHJ0FaQqEyl11WjwxOq0eDGWgtEi2_aSp9o7DGLYRpiiN33QL6maQD4G6OkcioJ/exec";
 let ubicacionEncontrada = null;
+let nombreRegistrado = null;
+
+document.getElementById("registrarNombre").addEventListener("click", () => {
+  const nombreUsuario = document.getElementById("usuarioInput").value;
+  if (nombreUsuario) {
+    nombreRegistrado = nombreUsuario;
+    alert("Nombre registrado: " + nombreUsuario);
+  } else {
+    alert("Por favor, ingrese el nombre del usuario.");
+  }
+});
 
 document.getElementById("scanQR").addEventListener("click", () => {
   Quagga.init({
@@ -38,14 +49,13 @@ Quagga.onDetected(function(data) {
 });
 
 function registrar(tipo) {
-  const nombreUsuario = document.getElementById("usuarioInput").value;
-  if (nombreUsuario && ubicacionEncontrada) {
+  if (nombreRegistrado && ubicacionEncontrada) {
     fetch(`${URL_DEL_SCRIPT}?action=registrarCheck`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ usuario: nombreUsuario, ubicacion: ubicacionEncontrada, tipo: tipo })
+      body: JSON.stringify({ usuario: nombreRegistrado, ubicacion: ubicacionEncontrada, tipo: tipo })
     })
     .then(response => response.json())
     .then(data => {
@@ -54,12 +64,13 @@ function registrar(tipo) {
         document.getElementById("usuarioInput").value = "";
         document.getElementById("qrResult").textContent = "";
         ubicacionEncontrada = null;
+        nombreRegistrado = null;
       } else {
         alert("Error al registrar.");
       }
     })
     .catch(error => console.error("Error al registrar:", error));
   } else {
-    alert("Por favor, ingrese el nombre del usuario y escanee el código QR de la ubicación.");
+    alert("Por favor, registre el nombre del usuario y escanee el código QR de la ubicación.");
   }
 }
