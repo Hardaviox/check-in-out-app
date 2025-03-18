@@ -18,20 +18,32 @@
         }
         #scanner-container video { width: 100%; height: 100%; }
         #qrResult { color: #333; }
-        #loginSection { display: block; }
+        #authSection { display: block; }
         #appSection { display: none; }
     </style>
 </head>
 <body>
     <h1>Check In/Out App</h1>
 
-    <div id="loginSection">
-        <input id="usernameInput" type="text" placeholder="Usuario">
-        <input id="passwordInput" type="password" placeholder="Contraseña">
-        <button id="loginBtn">Iniciar Sesión</button>
-        <p id="loginError"></p>
+    <!-- Authentication Section -->
+    <div id="authSection">
+        <div id="loginForm">
+            <input id="usernameInput" type="text" placeholder="Nombre (ID de usuario)">
+            <input id="passwordInput" type="text" placeholder="Últimos 4 dígitos del teléfono" maxlength="4">
+            <button id="loginBtn">Iniciar Sesión</button>
+            <button id="showRegisterBtn">Registrarse</button>
+            <p id="authError"></p>
+        </div>
+        <div id="registerForm" style="display: none;">
+            <input id="regUsernameInput" type="text" placeholder="Nombre (ID de usuario)">
+            <input id="regPhoneInput" type="text" placeholder="Número de teléfono (ej. 1234567890)" maxlength="10">
+            <button id="registerBtn">Registrar</button>
+            <button id="showLoginBtn">Volver a Inicio de Sesión</button>
+            <p id="regError"></p>
+        </div>
     </div>
 
+    <!-- App Section -->
     <div id="appSection">
         <p id="welcomeMessage"></p>
         <button id="scanQR">Escanear QR</button>
