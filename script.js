@@ -26,7 +26,8 @@ document.getElementById("scanQR").addEventListener("click", () => {
                     if (ubicacion) {
                         document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion} - ID: ${ubicacion.id}`;
                         ubicacionEncontrada = ubicacion;
-                        codeReader.reset(); // Cerrar la cámara
+                        document.getElementById("scanner-container").style.display = "none"; // Ocultar la cámara
+                        mostrarImagenQR(result.text); // Mostrar la imagen del código QR
                     } else {
                         document.getElementById("qrResult").textContent = "Ubicación no encontrada.";
                         ubicacionEncontrada = null;
@@ -50,7 +51,8 @@ document.getElementById("scanQR").addEventListener("click", () => {
                     if (ubicacion) {
                         document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion} - ID: ${ubicacion.id}`;
                         ubicacionEncontrada = ubicacion;
-                        codeReader.reset(); // Cerrar la cámara
+                        document.getElementById("scanner-container").style.display = "none"; // Ocultar la cámara
+                        mostrarImagenQR(result.text); // Mostrar la imagen del código QR
                     } else {
                         document.getElementById("qrResult").textContent = "Ubicación no encontrada.";
                         ubicacionEncontrada = null;
@@ -63,6 +65,15 @@ document.getElementById("scanQR").addEventListener("click", () => {
         });
     }
 });
+
+function mostrarImagenQR(texto) {
+    const qrImageUrl = `https://quickchart.io/qr?size=150x150&text=${encodeURIComponent(texto)}`;
+    const qrImage = document.createElement("img");
+    qrImage.src = qrImageUrl;
+    qrImage.style.width = "150px";
+    qrImage.style.height = "150px";
+    document.getElementById("scanner-container").parentNode.insertBefore(qrImage, document.getElementById("scanner-container"));
+}
 
 function registrar(tipo) {
     if (nombreRegistrado && ubicacionEncontrada) {
@@ -91,6 +102,11 @@ function registrar(tipo) {
                     ubicacionEncontrada = null;
                     nombreRegistrado = null;
                     tiempoCheckIn = null;
+                    const qrImage = document.querySelector("img");
+                    if (qrImage) {
+                        qrImage.remove(); // Eliminar la imagen del código QR
+                    }
+                    document.getElementById("scanner-container").style.display = "block"; // Mostrar la cámara
                 }
                 alert("Registro exitoso.");
             } else {
