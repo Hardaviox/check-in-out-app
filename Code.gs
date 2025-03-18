@@ -41,4 +41,4 @@ function registrarCheck(usuario, ubicacion, tipo) {
 
   // Registrar los datos
   sheet.appendRow([newId, usuario, ubicacion.id, ubicacion.direccion, fecha, hora, tipo]);
-} // Llave de cierre agregada aquí
+}
