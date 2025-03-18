@@ -12,38 +12,44 @@ document.addEventListener("DOMContentLoaded", () => \{\
   cargarUbicaciones();\
 \});\
 \
-function cargarUsuarios() \{\
-  fetch(`$\{URL_DEL_SCRIPT\}?action=obtenerUsuarios`)\
-    .then(response => response.json())\
-    .then(data => \{\
-      const select = document.getElementById("usuario");\
-      select.innerHTML = '<option value="">Selecciona un usuario</option>';\
-      data.forEach(usuario => \{\
-        let option = document.createElement("option");\
-        option.value = usuario;\
-        option.textContent = usuario;\
-        select.appendChild(option);\
-      \});\
-    \})\
-    .catch(error => console.error("Error cargando usuarios:", error));\
-\}\
-\
-function cargarUbicaciones() \{\
-  fetch(`$\{URL_DEL_SCRIPT\}?action=obtenerUbicaciones`)\
-    .then(response => response.json())\
-    .then(data => \{\
-      const select = document.getElementById("ubicacion");\
-      select.innerHTML = '<option value="">Selecciona una ubicaci\'f3n</option>';\
-      data.forEach(ubicacion => \{\
-        let option = document.createElement("option");\
-        option.value = ubicacion.id;\
-        option.textContent = `$\{ubicacion.id\} - $\{ubicacion.direccion\}`;\
-        select.appendChild(option);\
-      \});\
-    \})\
-    .catch(error => console.error("Error cargando ubicaciones:", error));\
-\}\
-\
-function registrar(tipo) \{\
-  const usuario = document.getElementById("usuario\
+function cargarUsuarios() {
+  fetch(`${URL_DEL_SCRIPT}?action=obtenerUsuarios`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      const select = document.getElementById("usuarioSelect");
+      select.innerHTML = '<option value="">Selecciona un usuario</option>';
+      data.forEach(usuario => {
+        let option = document.createElement("option");
+        option.value = usuario;
+        option.textContent = usuario;
+        select.appendChild(option);
+      });
+    })
+    .catch(error => console.error("Error cargando usuarios:", error));
+}
+
+function cargarUbicaciones() {
+  fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      const select = document.getElementById("ubicacionSelect");
+      select.innerHTML = '<option value="">Selecciona una ubicación</option>';
+      data.forEach(ubicacion => {
+        let option = document.createElement("option");
+        option.value = JSON.stringify(ubicacion);
+        option.textContent = `${ubicacion.id} - ${ubicacion.direccion}`;
+        select.appendChild(option);
+      });
+    })
+    .catch(error => console.error("Error cargando ubicaciones:", error));
 }
