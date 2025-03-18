@@ -21,7 +21,9 @@ document.getElementById("scanQR").addEventListener("click", () => {
             constraints: {
                 width: { min: 640 },
                 height: { min: 480 },
-                facingMode: "environment" // Usar la cámara trasera
+                facingMode: "environment", // Usar la cámara trasera
+                zoom: { min: 1.0, max: 1.0 }, // Controlar el zoom (intentar)
+                focusMode: { exact: "continuous" } // Modo de enfoque continuo (intentar)
             }
         },
         decoder: {
