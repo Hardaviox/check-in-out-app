@@ -110,16 +110,7 @@ function registrar(tipo) {
         .then(data => {
             if (data.result === "success") {
                 if (tipo === "Check-out") {
-                    document.getElementById("usuarioInput").value = "";
-                    document.getElementById("qrResult").textContent = "";
-                    ubicacionEncontrada = null;
-                    nombreRegistrado = null;
-                    tiempoCheckIn = null;
-                    const qrImage = document.querySelector("img");
-                    if (qrImage) {
-                        qrImage.remove(); // Eliminar la imagen del código QR
-                    }
-                    document.getElementById("scanner-container").style.display = "block"; // Mostrar la cámara
+                    location.reload(); // Actualizar la página después del check-out
                 }
                 alert("Registro exitoso.");
             } else {
