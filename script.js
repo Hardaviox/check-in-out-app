@@ -26,6 +26,7 @@ document.getElementById("scanQR").addEventListener("click", () => {
                     if (ubicacion) {
                         document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion} - ID: ${ubicacion.id}`;
                         ubicacionEncontrada = ubicacion;
+                        codeReader.reset(); // Cerrar la cámara
                     } else {
                         document.getElementById("qrResult").textContent = "Ubicación no encontrada.";
                         ubicacionEncontrada = null;
@@ -49,6 +50,7 @@ document.getElementById("scanQR").addEventListener("click", () => {
                     if (ubicacion) {
                         document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion} - ID: ${ubicacion.id}`;
                         ubicacionEncontrada = ubicacion;
+                        codeReader.reset(); // Cerrar la cámara
                     } else {
                         document.getElementById("qrResult").textContent = "Ubicación no encontrada.";
                         ubicacionEncontrada = null;
