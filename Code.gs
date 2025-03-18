@@ -1,43 +1,63 @@
 function doGet(e) {
-  return HtmlService.createHtmlOutputFromFile('index');
+  if (e.parameter.action == "obtenerUsuarios") {
+    return obtenerUsuarios();
+  } else if (e.parameter.action == "obtenerUbicaciones") {
+    return obtenerUbicaciones();
+  } else {
+    return ContentService.createTextOutput(JSON.stringify({ "message": "Invalid action" })).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
-function obtenerUbicacionQR(e) {
-  var codigo = decodeURIComponent(e.parameter.codigo);
-  Logger.log("Código QR recibido: " + codigo);
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var ubicacionesSheet = ss.getSheetByName("Ubicaciones");
-  var lastRow = ubicacionesSheet.getLastRow();
-  var ubicaciones = ubicacionesSheet.getRange(2, 1, lastRow - 1, 2).getValues();
-  Logger.log("Ubicaciones encontradas: " + JSON.stringify(ubicaciones));
-  for (var i = 0; i < ubicaciones.length; i++) {
-    if (ubicaciones[i][0] === codigo) {
-      Logger.log("Ubicación encontrada: " + ubicaciones[i][1]);
-      return ContentService.createTextOutput(JSON.stringify({ ubicacion: { "Account Building ID": codigo, "Address": ubicaciones[i][1] } })).setMimeType(ContentService.MimeType.JSON);
-    }
-  }
-  Logger.log("Ubicación no encontrada.");
-  return ContentService.createTextOutput(JSON.stringify({ ubicacion: null })).setMimeType(ContentService.MimeType.JSON);
+function doPost(e) {
+  var params = JSON.parse(e.postData.contents);
+  var usuario = params.usuario;
+  var ubicacion = params.ubicacion;
+  var tipo = params.tipo;
+
+  registrarCheck(usuario, ubicacion, tipo);
+
+  return ContentService.createTextOutput(JSON.stringify({ "result": "success" })).setMimeType(ContentService.MimeType.JSON);
 }
 
 function registrarCheck(usuario, ubicacion, tipo) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("Sheet1");
-  var fechaHora = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
-  sheet.appendRow([usuario, ubicacion, fechaHora, tipo]);
+
+  // Obtener el último ID de registro
+  var lastRow = sheet.getLastRow();
+  var lastId = (lastRow > 1) ? sheet.getRange(lastRow, 1).getValue() : 0;
+  var newId = lastId + 1;
+
+  // Obtener fecha y hora
+  var fechaHora = new Date();
+  var fecha = Utilities.formatDate(fechaHora, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  var hora = Utilities.formatDate(fechaHora, Session.getScriptTimeZone(), "HH:mm:ss");
+
+  // Registrar los datos
+  sheet.appendRow([newId, usuario, ubicacion, fecha, hora, tipo]);
 }
 
-function doPost(e) {
-  if (e && e.postData && e.postData.contents) {
-    var params = JSON.parse(e.postData.contents);
-    var usuario = params.usuario;
-    var ubicacion = params.ubicacion;
-    var tipo = params.tipo;
-
-    registrarCheck(usuario, ubicacion, tipo);
-
-    return ContentService.createTextOutput(JSON.stringify({ "result": "success" })).setMimeType(ContentService.MimeType.JSON);
-  } else {
-    return ContentService.createTextOutput(JSON.stringify({ "error": "Invalid request" })).setMimeType(ContentService.MimeType.JSON);
+function obtenerUbicaciones() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Ubicaciones");
+  var data = sheet.getDataRange().getValues();
+  var ubicaciones = [];
+  for (var i = 1; i < data.length; i++) {
+    ubicaciones.push({
+      id: data[i][0], // Account Building ID
+      direccion: data[i][1] // Dirección
+    });
   }
+  return ContentService.createTextOutput(JSON.stringify(ubicaciones)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function obtenerUsuarios() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Usuarios");
+  var data = sheet.getDataRange().getValues();
+  var usuarios = [];
+  for (var i = 1; i < data.length; i++) {
+    usuarios.push(data[i][0]);
+  }
+  return ContentService.createTextOutput(JSON.stringify(usuarios)).setMimeType(ContentService.MimeType.JSON);
 }
