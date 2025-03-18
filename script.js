@@ -2,18 +2,52 @@ const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwNZjHJ0FaQqEyl1
 
 function buscarUsuario() {
   const nombreUsuario = document.getElementById("usuarioInput").value;
-  // Aquí puedes agregar lógica para buscar el usuario en tu hoja de cálculo
-  // y mostrar el resultado (opcional).
-  console.log("Buscar usuario:", nombreUsuario);
+  fetch(`${URL_DEL_SCRIPT}?action=buscarUsuario&nombre=${encodeURIComponent(nombreUsuario)}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.usuario) {
+        alert(`Usuario encontrado: ${data.usuario}`);
+        // Aquí puedes agregar lógica para mostrar más información del usuario
+      } else {
+        alert("Usuario no encontrado.");
+      }
+    })
+    .catch(error => console.error("Error buscando usuario:", error));
 }
 
 document.getElementById("scanQR").addEventListener("click", () => {
-  // Aquí puedes agregar lógica para abrir la cámara y escanear el código QR.
-  // Puedes usar una librería como QuaggaJS o ZXing.
-  console.log("Escanear QR");
-  // Ejemplo simulado:
-  const ubicacionQR = { id: "QR123", direccion: "Dirección del QR" };
-  document.getElementById("qrResult").textContent = `Ubicación: ${ubicacionQR.id} - ${ubicacionQR.direccion}`;
+  Quagga.init({
+    inputStream: {
+      name: "Live",
+      type: "LiveStream",
+      target: document.querySelector("#scanner-container")
+    },
+    decoder: {
+      readers: ["qr_code_reader"]
+    }
+  }, function(err) {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    Quagga.start();
+  });
+});
+
+Quagga.onDetected(function(data) {
+  Quagga.stop();
+  const codigoQR = data.codeResult.code;
+  fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicacionQR&codigo=${encodeURIComponent(codigoQR)}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.ubicacion) {
+        document.getElementById("qrResult").textContent = `Ubicación: ${data.ubicacion.Address}`;
+        // Aquí puedes agregar lógica para usar la información de la ubicación
+      } else {
+        document.getElementById("qrResult").textContent = "Ubicación no encontrada.";
+      }
+    })
+    .catch(error => console.error("Error obteniendo ubicación:", error));
 });
 
 function registrar(tipo) {
