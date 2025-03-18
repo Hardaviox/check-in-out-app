@@ -37,4 +37,10 @@ function registrarCheck(usuario, ubicacion, tipo) {
   // Obtener fecha y hora
   var fechaHora = new Date();
   var fecha = Utilities.formatDate(fechaHora, Session.getScriptTimeZone(), "yyyy-MM-dd");
-  var hora = Utilities.formatDate(fechaHora, Session.getScriptTimeZone(), "HH:
+  var hora = Utilities.formatDate(fechaHora, Session.getScriptTimeZone(), "HH:mm:ss");
+
+  // Registrar los datos
+  sheet.appendRow([newId, usuario, ubicacion.id, ubicacion.direccion, fecha, hora, tipo]);
+}
+
+// ... (resto del código)
