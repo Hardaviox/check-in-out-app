@@ -1,43 +1,94 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="es">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Check-in/Check-out</title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2113.65">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times; color: #000000; -webkit-text-stroke: #000000}
-    span.s1 {font-kerning: none}
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
-<p class="p1"><span class="s1">&lt;html lang="es"&gt;</span></p>
-<p class="p1"><span class="s1">&lt;head&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;title&gt;Check-in/Check-out&lt;/title&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;link rel="stylesheet" href="style.css"&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
-<p class="p1"><span class="s1">&lt;body&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;h1&gt;Check-in/Check-out&lt;/h1&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;form id="checkForm"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;label for="usuario"&gt;Usuario:&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;select id="usuario" name="usuario" required&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value=""&gt;Selecciona un usuario&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/select&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;br&gt;&lt;br&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;label for="ubicacion"&gt;Ubicación:&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;select id="ubicacion" name="ubicacion" required&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value=""&gt;Selecciona una ubicación&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/select&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;br&gt;&lt;br&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button type="button" class="custom-button check-in" onclick="registrar('Check-in')"&gt;Check-in&lt;/button&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button type="button" class="custom-button check-out" onclick="registrar('Check-out')"&gt;Check-out&lt;/button&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/form&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script src="script.js"&gt;&lt;/script&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
+  <h1>Check-in/Check-out</h1>
+  <form id="checkForm">
+    <label for="usuario">Usuario:</label>
+    <select id="usuario" name="usuario" required>
+      <option value="">Selecciona un usuario</option>
+    </select>
+    <br><br>
+    <label for="ubicacion">Ubicación:</label>
+    <select id="ubicacion" name="ubicacion" required>
+      <option value="">Selecciona una ubicación</option>
+    </select>
+    <br><br>
+    <button type="button" class="custom-button check-in" onclick="registrar('Check-in')">Check-in</button>
+    <button type="button" class="custom-button check-out" onclick="registrar('Check-out')">Check-out</button>
+  </form>
+  
+  <script>
+    const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwNZjHJ0FaQqEyl11WjwxOq0eDGWgtEi2_aSp9o7DGLYRpiiN33QL6maQD4G6OkcioJ/exec";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      cargarUsuarios();
+      cargarUbicaciones();
+    });
+
+    function cargarUsuarios() {
+      fetch(`${URL_DEL_SCRIPT}?action=obtenerUsuarios`)
+        .then(response => response.json())
+        .then(data => {
+          const select = document.getElementById("usuario");
+          select.innerHTML = '<option value="">Selecciona un usuario</option>';
+          data.forEach(usuario => {
+            let option = document.createElement("option");
+            option.value = usuario;
+            option.textContent = usuario;
+            select.appendChild(option);
+          });
+        })
+        .catch(error => console.error("Error cargando usuarios:", error));
+    }
+
+    function cargarUbicaciones() {
+      fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`)
+        .then(response => response.json())
+        .then(data => {
+          const select = document.getElementById("ubicacion");
+          select.innerHTML = '<option value="">Selecciona una ubicación</option>';
+          data.forEach(ubicacion => {
+            let option = document.createElement("option");
+            option.value = ubicacion.id;
+            option.textContent = `${ubicacion.id} - ${ubicacion.direccion}`;
+            select.appendChild(option);
+          });
+        })
+        .catch(error => console.error("Error cargando ubicaciones:", error));
+    }
+
+    function registrar(tipo) {
+      const usuario = document.getElementById("usuario").value;
+      const ubicacion = document.getElementById("ubicacion").value;
+
+      if (!usuario || !ubicacion) {
+        alert("Selecciona un usuario y una ubicación");
+        return;
+      }
+
+      const data = { usuario, ubicacion, tipo };
+
+      fetch(URL_DEL_SCRIPT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+        .then(response => response.json())
+        .then(responseData => {
+          console.log("Registro exitoso:", responseData);
+          alert("Registro exitoso");
+        })
+        .catch(error => {
+          console.error("Error en el registro:", error);
+          alert("Error en el registro");
+        });
+    }
+  </script>
 </body>
 </html>
