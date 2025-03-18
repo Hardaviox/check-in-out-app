@@ -37,7 +37,9 @@ document.getElementById("scanQR").addEventListener("click", () => {
         });
     } else {
         codeReader = new ZXing.BrowserQRCodeReader();
-        codeReader.decodeFromInputVideoDevice(undefined, 'scanner-container').then((result) => {
+        const hints = new Map();
+        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.QR_CODE]);
+        codeReader.decodeFromInputVideoDevice(undefined, 'scanner-container', hints).then((result) => {
             console.log(result.text);
             fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`)
                 .then(response => response.json())
