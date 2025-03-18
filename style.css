@@ -66,4 +66,35 @@ button:hover \{\
   button \{\
     width: 100%;\
   \}\
+\}\
+.custom-button \{\
+  background-color: #007bff; /* Azul */\
+  color: white;\
+  padding: 10px 20px;\
+  border: none;\
+  border-radius: 5px;\
+  cursor: pointer;\
+  font-size: 16px;\
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);\
+  transition: background-color 0.3s ease; /* Transici\'f3n suave */\
+\}\
+\
+.custom-button:hover \{\
+  background-color: #0056b3; /* Azul m\'e1s oscuro */\
+\}\
+\
+.custom-button.check-in \{\
+  background-color: #28a745; /* Verde */\
+\}\
+\
+.custom-button.check-in:hover \{\
+  background-color: #218838; /* Verde m\'e1s oscuro */\
+\}\
+\
+.custom-button.check-out \{\
+  background-color: #dc3545; /* Rojo */\
+\}\
+\
+.custom-button.check-out:hover \{\
+  background-color: #c82333; /* Rojo m\'e1s oscuro */\
 \}}
