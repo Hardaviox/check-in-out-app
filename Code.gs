@@ -23,22 +23,4 @@ function doPost(e) {
 
 function registrarCheck(usuario, ubicacion, tipo) {
   if (!ubicacion || !ubicacion.id) {
-    Logger.log("Ubicación no valida: " + JSON.stringify(ubicacion));
-    return;
-  }
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName("Sheet1");
-
-  // Obtener el último ID de registro
-  var lastRow = sheet.getLastRow();
-  var lastId = (lastRow > 1) ? sheet.getRange(lastRow, 1).getValue() : 0;
-  var newId = lastId + 1;
-
-  // Obtener fecha y hora
-  var fechaHora = new Date();
-  var fecha = Utilities.formatDate(fechaHora, Session.getScriptTimeZone(), "yyyy-MM-dd");
-  var hora = Utilities.formatDate(fechaHora, Session.getScriptTimeZone(), "HH:mm:ss");
-
-  // Registrar los datos
-  sheet.appendRow([newId, usuario, ubicacion.id, ubicacion.direccion, fecha, hora, tipo]);
-}
+    Logger.log("Ubicación no valida
