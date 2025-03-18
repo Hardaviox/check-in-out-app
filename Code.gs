@@ -38,7 +38,7 @@ function registrarCheck(usuario, ubicacion, tipo) {
   var hora = Utilities.formatDate(fechaHora, Session.getScriptTimeZone(), "HH:mm:ss");
 
   // Registrar los datos
-  sheet.appendRow([newId, usuario, ubicacion, fecha, hora, tipo]);
+  sheet.appendRow([newId, usuario, ubicacion.id, ubicacion.direccion, fecha, hora, tipo]);
 }
 
 function generarCodigosQR(tamaño) {
@@ -52,10 +52,9 @@ function generarCodigosQR(tamaño) {
 
   for (var i = 1; i < data.length; i++) {
     var accountBuildingId = data[i][0];
-    var qrCodeUrl = "https://chart.googleapis.com/chart?chs=" + tamaño + "&cht=qr&chl=" + encodeURIComponent(accountBuildingId);
+    var qrCodeUrl = "https://quickchart.io/qr?size=" + tamaño + "&text=" + encodeURIComponent(accountBuildingId);
     sheet.getRange(i + 1, 3).setValue(qrCodeUrl); // Columna 3: URL del Código QR
   }
-
   return ContentService.createTextOutput(JSON.stringify({ "message": "Códigos QR generados y URLs guardadas en la hoja 'Ubicaciones'." })).setMimeType(ContentService.MimeType.JSON);
 }
 
