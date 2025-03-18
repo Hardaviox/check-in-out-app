@@ -9,26 +9,14 @@
 <body>
   <h1>Check-in/Check-out</h1>
   <form id="checkForm">
-    <div>
-      <label for="usuarioSelect">Usuario:</label>
-      <select id="usuarioSelect" name="usuario" required>
-        <option value="">Selecciona un usuario</option>
-      </select>
-    </div>
-    <br>
-    <div>
-      <label for="ubicacionSelect">Ubicación:</label>
-      <select id="ubicacionSelect" name="ubicacion" required>
-        <option value="">Selecciona una ubicación</option>
-      </select>
-    </div>
-    <br>
+    <label for="usuarioInput">Buscar Usuario:</label>
+    <input type="text" id="usuarioInput" name="usuarioInput" placeholder="Nombre del usuario">
+    <button type="button" onclick="buscarUsuario()">Buscar</button>
+    <button type="button" id="scanQR">Escanear QR</button>
+    <div id="qrResult"></div>
     <button type="button" class="custom-button check-in" onclick="registrar('Check-in')">Check-in</button>
     <button type="button" class="custom-button check-out" onclick="registrar('Check-out')">Check-out</button>
   </form>
-
-  <script>
-    // ... (JavaScript code remains the same) ...
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
