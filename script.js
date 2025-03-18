@@ -2,6 +2,7 @@ const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbxRgzei-9QEb1ZlL
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
 let codeReader = null;
+let tiempoCheckIn = null; // Variable para almacenar el tiempo de check-in
 
 document.getElementById("registrarNombre").addEventListener("click", () => {
     const nombreUsuario = document.getElementById("usuarioInput").value;
@@ -63,6 +64,15 @@ document.getElementById("scanQR").addEventListener("click", () => {
 
 function registrar(tipo) {
     if (nombreRegistrado && ubicacionEncontrada) {
+        if (tipo === "Check-in") {
+            tiempoCheckIn = new Date();
+            alert("Check-in iniciado en: " + tiempoCheckIn.toLocaleTimeString());
+        } else if (tipo === "Check-out") {
+            const tiempoCheckOut = new Date();
+            const tiempoTranscurrido = tiempoCheckOut - tiempoCheckIn;
+            alert("Check-out finalizado en: " + tiempoCheckOut.toLocaleTimeString() + "\nTiempo transcurrido: " + formatTiempoTranscurrido(tiempoTranscurrido));
+        }
+
         fetch(`${URL_DEL_SCRIPT}`, {
             method: "POST",
             headers: {
@@ -73,11 +83,14 @@ function registrar(tipo) {
         .then(response => response.json())
         .then(data => {
             if (data.result === "success") {
+                if (tipo === "Check-out") {
+                    document.getElementById("usuarioInput").value = "";
+                    document.getElementById("qrResult").textContent = "";
+                    ubicacionEncontrada = null;
+                    nombreRegistrado = null;
+                    tiempoCheckIn = null;
+                }
                 alert("Registro exitoso.");
-                document.getElementById("usuarioInput").value = "";
-                document.getElementById("qrResult").textContent = "";
-                ubicacionEncontrada = null;
-                nombreRegistrado = null;
             } else {
                 alert("Error al registrar.");
             }
@@ -86,4 +99,11 @@ function registrar(tipo) {
     } else {
         alert("Por favor, registre el nombre del usuario y escanee el código QR de la ubicación.");
     }
+}
+
+function formatTiempoTranscurrido(tiempo) {
+    const segundos = Math.floor(tiempo / 1000) % 60;
+    const minutos = Math.floor(tiempo / (1000 * 60)) % 60;
+    const horas = Math.floor(tiempo / (1000 * 60 * 60));
+    return `${horas}h ${minutos}m ${segundos}s`;
 }
