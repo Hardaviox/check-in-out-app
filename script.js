@@ -34,23 +34,24 @@ document.getElementById("scanQR").addEventListener("click", () => {
 Quagga.onDetected(function(data) {
   Quagga.stop();
   const codigoQR = data.codeResult.code;
-  fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicacionQR&codigo=${encodeURIComponent(codigoQR)}`)
+  fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`)
     .then(response => response.json())
-    .then(data => {
-      if (data.ubicacion) {
-        document.getElementById("qrResult").textContent = `Ubicación: ${data.ubicacion.Address}`;
-        ubicacionEncontrada = data.ubicacion.Address;
+    .then(ubicaciones => {
+      let ubicacion = ubicaciones.find(u => u.id === codigoQR);
+      if (ubicacion) {
+        document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion}`;
+        ubicacionEncontrada = ubicacion.direccion;
       } else {
         document.getElementById("qrResult").textContent = "Ubicación no encontrada.";
         ubicacionEncontrada = null;
       }
     })
-    .catch(error => console.error("Error obteniendo ubicación:", error));
+    .catch(error => console.error("Error obteniendo ubicaciones:", error));
 });
 
 function registrar(tipo) {
   if (nombreRegistrado && ubicacionEncontrada) {
-    fetch(`${URL_DEL_SCRIPT}?action=registrarCheck`, {
+    fetch(`${URL_DEL_SCRIPT}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
