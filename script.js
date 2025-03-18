@@ -76,7 +76,11 @@ function mostrarImagenQR(texto) {
 }
 
 function registrar(tipo) {
+    console.log("Botón clickeado:", tipo); // Depuración
+
     if (nombreRegistrado && ubicacionEncontrada) {
+        console.log("ubicacionEncontrada:", ubicacionEncontrada); // Depuración
+
         // Validación adicional
         if (!ubicacionEncontrada || !ubicacionEncontrada.id) {
             console.error("Error: ubicacionEncontrada no tiene la propiedad 'id'.", ubicacionEncontrada);
@@ -122,7 +126,7 @@ function registrar(tipo) {
                 alert("Error al registrar.");
             }
         })
-        .catch(error => console.error("Error al registrar:", error));
+        .catch(error => console.error("Error en la solicitud:", error)); // Depuración
     } else {
         alert("Por favor, registre el nombre del usuario y escanee el código QR de la ubicación.");
     }
