@@ -185,4 +185,64 @@ function registrar(tipo) {
         const tiempoTranscurrido = tiempoCheckOut - tiempoCheckIn;
         document.getElementById("actionMessage").textContent = `Check-out registrado para ${nombreRegistrado} en ${ubicacionEncontrada.direccion} a las ${tiempoCheckOut.toLocaleTimeString()}. Duración: ${formatTiempoTranscurrido(tiempoTranscurrido)}`;
 
-        fetch(URL_DEL
+        fetch(URL_DEL_SCRIPT, {
+            method: "POST",
+            mode: "cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            console.log("Check-out fetch response status:", response.status);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            console.log("Check-out fetch data:", data);
+            if (data.result === "success") {
+                const anotherLocation = confirm("¿Desea registrar otra ubicación?");
+                if (anotherLocation) {
+                    console.log("User chose to register another location - reloading");
+                    window.location.reload();
+                } else {
+                    document.getElementById("actionMessage").textContent += " Sesión finalizada.";
+                    document.getElementById("checkInBtn").disabled = true;
+                    document.getElementById("checkOutBtn").disabled = true;
+                    document.getElementById("scanQR").disabled = true;
+                    console.log("Session ended");
+                }
+            } else {
+                document.getElementById("actionMessage").textContent = "Error al registrar: " + (data.message || "Desconocido");
+            }
+        })
+        .catch(error => {
+            console.error("Error en check-out:", error);
+            document.getElementById("actionMessage").textContent = "Error al conectar con el servidor: " + error.message;
+        });
+        return;
+    }
+
+    // Save Check-in
+    fetch(URL_DEL_SCRIPT, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        console.log("Check-in fetch response status:", response.status);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+    })
+    .catch(error => {
+        console.error("Error en check-in:", error);
+        document.getElementById("actionMessage").textContent = "Error al conectar con el servidor: " + error.message;
+    });
+}
+
+// Formatear tiempo
+function formatTiempoTranscurrido(tiempo) {
+    const segundos = Math.floor(tiempo / 1000) % 60;
+    const minutos = Math.floor(tiempo / (1000 * 60)) % 60;
+    const horas = Math.floor(tiempo / (1000 * 60 * 60));
+    return `${horas}h ${minutos}m ${segundos}s`;
+}
