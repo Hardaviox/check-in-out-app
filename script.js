@@ -1,4 +1,4 @@
-const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwQXDwSMXisYvKRrkdeW013Y3990pJ3W1g4hX-VBBb038bUKdCg1W3GSSuTlO1aAMOI/exec";
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwehFZezRnEInYhMFVv_pgK9kRzVn0tvvOUylXS1KBWDZdZVgn2cRuag7r78NCdo_hP/exec";
 
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
@@ -15,13 +15,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const username = document.getElementById("usernameInput").value.trim();
             if (username) {
                 console.log("Registering user:", username);
-                fetch(`${URL_DEL_SCRIPT}?action=register&username=${encodeURIComponent(username)}`, {
+                fetch(`<span class="math-inline">\{URL\_DEL\_SCRIPT\}?action\=register&username\=</span>{encodeURIComponent(username)}`, {
                     method: "GET",
                     mode: "cors",
                     redirect: "follow"
                 })
                 .then(response => {
-                    console.log("Register fetch response:", response);
+                    console.log("Register fetch status:", response.status);
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     return response.json();
                 })
@@ -56,22 +56,58 @@ document.addEventListener("DOMContentLoaded", () => {
             scannerContainer.style.display = "block";
             scannerContainer.innerHTML = "";
 
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                // Camera access is available
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(() => {
-                        // Camera permission granted, load Html5Qrcode
-                        loadHtml5Qrcode(scannerContainer);
-                    })
-                    .catch(error => {
-                        console.error("Camera permission denied or not available:", error);
-                        provideManualInput(scannerContainer);
+            qrReader = new Html5Qrcode("scanner-container");
+            qrReader.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    console.log("Código QR leído:", decodedText);
+                    qrReader.stop().then(() => {
+                        fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`, { mode: "cors" })
+                            .then(response => {
+                                console.log("Ubicaciones fetch response:", response);
+                                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                                return response.json();
+                            })
+                            .then(ubicaciones => {
+                                console.log("Ubicaciones recibidas:", ubicaciones);
+                                if (ubicaciones && ubicaciones.result && Array.isArray(ubicaciones.result)) {
+                                    const ubicacion = ubicaciones.result.find(u => u.id === decodedText);
+                                    if (ubicacion) {
+                                        console.log("Ubicación encontrada:", ubicacion);
+                                        document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion}`;
+                                        ubicacionEncontrada = ubicacion;
+                                        tiempoCheckIn = null;
+                                        document.getElementById("actionMessage").textContent = "";
+                                        mostrarImagenQR(decodedText);
+                                    } else {
+                                        console.log("No se encontró ubicación para:", decodedText);
+                                        document.getElementById("qrResult").textContent = "Ubicación no encontrada";
+                                        scannerContainer.style.display = "none";
+                                        ubicacionEncontrada = null;
+                                    }
+                                } else {
+                                    console.error("Error: ubicaciones.result is not valid:", ubicaciones);
+                                    document.getElementById("qrResult").textContent = "Error: Datos de ubicaciones inválidos.";
+                                    scannerContainer.style.display = "none";
+                                    ubicacionEncontrada = null;
+                                }
+                            })
+                            .catch(error => {
+                                console.error("Error obteniendo ubicaciones:", error);
+                                document.getElementById("qrResult").textContent = "Error al obtener ubicaciones: " + error.message;
+                                scannerContainer.style.display = "none";
+                            });
                     });
-            } else {
-                // Camera access is NOT available
-                console.log("Camera not found, providing manual input.");
-                provideManualInput(scannerContainer);
-            }
+                },
+                (error) => {
+                    console.warn("Error durante el escaneo:", error);
+                }
+            ).catch(error => {
+                console.error("Error iniciando el escáner:", error);
+                document.getElementById("qrResult").textContent = "Error al iniciar el escáner o permiso denegado";
+                scannerContainer.style.display = "none";
+            });
         });
     }
 
@@ -91,82 +127,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-
-function loadHtml5Qrcode(scannerContainer) {
-    try {
-        qrReader = new Html5Qrcode("scanner-container");
-        qrReader.start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            (decodedText) => {
-                console.log("Código QR leído:", decodedText);
-                qrReader.stop().then(() => {
-                    processDecodedText(decodedText);
-                });
-            },
-            (error) => {
-                console.warn("Error durante el escaneo:", error);
-            }
-        ).catch(error => {
-            console.error("Error initializing the scanner:", error);
-            document.getElementById("qrResult").textContent = "Error al iniciar el escáner o permiso denegado";
-            scannerContainer.style.display = "none";
-        });
-    } catch (e) {
-        console.error("Error initializing Html5Qrcode:", e);
-        scannerContainer.style.display = "none";
-    }
-}
-
-function provideManualInput(scannerContainer) {
-    scannerContainer.innerHTML = `
-        <input type="text" id="manualQRInput" placeholder="Enter QR Code Value">
-        <button id="manualQRSubmit">Submit</button>
-    `;
-
-    document.getElementById("manualQRSubmit").addEventListener("click", () => {
-        const manualText = document.getElementById("manualQRInput").value;
-        processDecodedText(manualText);
-    });
-}
-
-function processDecodedText(decodedText) {
-    fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`, { mode: "cors" })
-        .then(response => {
-            console.log("Ubicaciones fetch response:", response);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
-        })
-        .then(ubicaciones => {
-            console.log("Ubicaciones recibidas:", ubicaciones);
-            if (ubicaciones && ubicaciones.result && Array.isArray(ubicaciones.result)) {
-                const ubicacion = ubicaciones.result.find(u => u.id === decodedText);
-                if (ubicacion) {
-                    console.log("Ubicación encontrada:", ubicacion);
-                    document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion}`;
-                    ubicacionEncontrada = ubicacion;
-                    tiempoCheckIn = null;
-                    document.getElementById("actionMessage").textContent = "";
-                    mostrarImagenQR(decodedText);
-                } else {
-                    console.log("No se encontró ubicación para:", decodedText);
-                    document.getElementById("qrResult").textContent = "Ubicación no encontrada";
-                    scannerContainer.style.display = "none";
-                    ubicacionEncontrada = null;
-                }
-            } else {
-                console.error("Error: ubicaciones.result is not valid:", ubicaciones);
-                document.getElementById("qrResult").textContent = "Error: Datos de ubicaciones inválidos.";
-                scannerContainer.style.display = "none";
-                ubicacionEncontrada = null;
-            }
-        })
-        .catch(error => {
-            console.error("Error obteniendo ubicaciones:", error);
-            document.getElementById("qrResult").textContent = "Error al obtener ubicaciones: " + error.message;
-            scannerContainer.style.display = "none";
-        });
-}
 
 // Mostrar imagen QR
 function mostrarImagenQR(texto) {
@@ -202,6 +162,27 @@ function registrar(tipo) {
     if (tipo === "Check-in") {
         if (tiempoCheckIn) {
             document.getElementById("actionMessage").textContent = "Ya ha iniciado un Check-in en esta ubicación.";
+            return;
         }
+        tiempoCheckIn = tiempoActual;
+        document.getElementById("actionMessage").textContent = `Check-in iniciado a las ${tiempoCheckIn.toLocaleTimeString()}`;
+    } else if (tipo === "Check-out") {
+        if (!tiempoCheckIn) {
+            document.getElementById("actionMessage").textContent = "Primero debe realizar un Check-in.";
+            return;
+        }
+        const tiempoCheckOut = tiempoActual;
+        const tiempoTranscurrido = tiempoCheckOut - tiempoCheckIn;
+        document.getElementById("actionMessage").textContent = `Check-out registrado a las ${tiempoCheckOut.toLocaleTimeString()}. Duración: ${formatTiempoTranscurrido(tiempoTranscurrido)}`;
     }
-});
+
+    fetch(URL_DEL_SCRIPT, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        console.log(`${tipo} fetch status:`, response.status);
+        console.log(`${tipo} fetch headers:`, [...response.headers]);
+        if (!response.ok) throw
