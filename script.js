@@ -10,108 +10,110 @@ document.addEventListener("DOMContentLoaded", () => {
     // Register
     const registerBtn = document.getElementById("registerBtn");
     if (registerBtn) {
-        console.log("Register button found");
         registerBtn.addEventListener("click", () => {
-            alert("Register button clicked - Starting registration");
-            console.log("Register button clicked");
             const username = document.getElementById("usernameInput").value.trim();
             if (username) {
-                console.log("Attempting to register user:", username);
+                console.log("Registering user:", username);
                 fetch(`${URL_DEL_SCRIPT}?action=register&username=${encodeURIComponent(username)}`, {
                     method: "GET",
                     mode: "cors",
                     redirect: "follow"
                 })
                 .then(response => {
-                    console.log("Register fetch response status:", response.status);
-                    console.log("Register fetch response headers:", [...response.headers]);
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     return response.json();
                 })
                 .then(data => {
-                    console.log("Register fetch data:", data);
                     if (data.result === "success") {
                         nombreRegistrado = username;
-                        document.getElementById("regMessage").textContent = `Usuario ${username} registrado exitosamente.`;
+                        document.getElementById("regMessage").textContent = "Nombre registrado";
                         document.getElementById("nameSection").style.display = "none";
                         document.getElementById("appSection").style.display = "block";
                         document.getElementById("welcomeMessage").textContent = `Bienvenido, ${username}`;
                     } else {
-                        document.getElementById("regMessage").textContent = data.message || "Error al registrar";
+                        document.getElementById("regMessage").textContent = "Error al registrar";
                     }
                 })
                 .catch(error => {
                     console.error("Error en registro:", error);
-                    document.getElementById("regMessage").textContent = "Error al conectar con el servidor: " + error.message;
+                    document.getElementById("regMessage").textContent = "Error al conectar con el servidor";
                 });
             } else {
                 document.getElementById("regMessage").textContent = "Ingrese su nombre";
-                console.log("No username entered");
             }
         });
-    } else {
-        console.error("Register button not found in DOM");
     }
 
     // Escanear QR
     const scanQRBtn = document.getElementById("scanQR");
     if (scanQRBtn) {
         scanQRBtn.addEventListener("click", () => {
-            alert("Scan QR button clicked");
-            console.log("Scan QR button clicked");
+            console.log("Starting QR scan");
             const scannerContainer = document.getElementById("scanner-container");
             scannerContainer.style.display = "block";
             scannerContainer.innerHTML = '<video id="videoElement"></video>';
 
-            Quagga.init({
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: document.querySelector("#scanner-container video"),
-                    constraints: { facingMode: "environment" }
-                },
-                decoder: { readers: ["qr_code_reader"] }
-            }, (err) => {
-                if (err) {
-                    console.error("Error inicializando Quagga:", err);
-                    document.getElementById("qrResult").textContent = "Error al iniciar el escáner";
-                    scannerContainer.style.display = "none";
-                    return;
-                }
-                console.log("Quagga initialized successfully");
-                Quagga.start();
-            });
-
-            Quagga.onDetected((result) => {
-                const code = result.codeResult.code;
-                console.log("Código QR leído:", code);
-                Quagga.stop();
-                scannerContainer.style.display = "none";
-                fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`, { mode: "cors" })
-                    .then(response => {
-                        console.log("Ubicaciones fetch response status:", response.status);
-                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        return response.json();
-                    })
-                    .then(ubicaciones => {
-                        console.log("Ubicaciones data:", ubicaciones);
-                        const ubicacion = ubicaciones.find(u => u.id === code);
-                        if (ubicacion) {
-                            document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion} - ID: ${ubicacion.id}`;
-                            ubicacionEncontrada = ubicacion;
-                            tiempoCheckIn = null;
-                            document.getElementById("actionMessage").textContent = "";
-                            mostrarImagenQR(code);
-                        } else {
-                            document.getElementById("qrResult").textContent = "Ubicación no encontrada";
-                            ubicacionEncontrada = null;
+            // Request camera permission and initialize Quagga
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(stream => {
+                    Quagga.init({
+                        inputStream: {
+                            name: "Live",
+                            type: "LiveStream",
+                            target: document.querySelector("#scanner-container video"),
+                            constraints: {
+                                facingMode: "environment"
+                            }
+                        },
+                        decoder: { readers: ["qr_code_reader"] }
+                    }, (err) => {
+                        if (err) {
+                            console.error("Error inicializando Quagga:", err);
+                            document.getElementById("qrResult").textContent = "Error al iniciar el escáner";
+                            scannerContainer.style.display = "none";
+                            stream.getTracks().forEach(track => track.stop());
+                            return;
                         }
-                    })
-                    .catch(error => {
-                        console.error("Error obteniendo ubicaciones:", error);
-                        document.getElementById("qrResult").textContent = "Error al obtener ubicaciones";
+                        console.log("Quagga initialized");
+                        Quagga.start();
                     });
-            });
+
+                    Quagga.onDetected((result) => {
+                        const code = result.codeResult.code;
+                        console.log("Código QR leído:", code);
+                        Quagga.stop();
+                        stream.getTracks().forEach(track => track.stop());
+                        fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`, { mode: "cors" })
+                            .then(response => {
+                                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                                return response.json();
+                            })
+                            .then(ubicaciones => {
+                                const ubicacion = ubicaciones.find(u => u.id === code);
+                                if (ubicacion) {
+                                    document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion}`;
+                                    ubicacionEncontrada = ubicacion;
+                                    tiempoCheckIn = null;
+                                    document.getElementById("actionMessage").textContent = "";
+                                    mostrarImagenQR(code);
+                                } else {
+                                    document.getElementById("qrResult").textContent = "Ubicación no encontrada";
+                                    scannerContainer.style.display = "none";
+                                    ubicacionEncontrada = null;
+                                }
+                            })
+                            .catch(error => {
+                                console.error("Error obteniendo ubicaciones:", error);
+                                document.getElementById("qrResult").textContent = "Error al obtener ubicaciones";
+                                scannerContainer.style.display = "none";
+                            });
+                    });
+                })
+                .catch(error => {
+                    console.error("Error accediendo a la cámara:", error);
+                    document.getElementById("qrResult").textContent = "Permiso de cámara denegado o no disponible";
+                    scannerContainer.style.display = "none";
+                });
         });
     }
 
@@ -119,8 +121,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const checkInBtn = document.getElementById("checkInBtn");
     if (checkInBtn) {
         checkInBtn.addEventListener("click", () => {
-            alert("Check-in button clicked");
-            console.log("Check-in button clicked");
             registrar("Check-in");
         });
     }
@@ -129,8 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const checkOutBtn = document.getElementById("checkOutBtn");
     if (checkOutBtn) {
         checkOutBtn.addEventListener("click", () => {
-            alert("Check-out button clicked");
-            console.log("Check-out button clicked");
             registrar("Check-out");
         });
     }
@@ -138,15 +136,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Mostrar imagen QR
 function mostrarImagenQR(texto) {
-    console.log("Generating QR image for:", texto);
-    const qrImageUrl = `https://quickchart.io/qr?size=150x150&text=${encodeURIComponent(texto)}`;
+    console.log("Showing QR image for:", texto);
+    const qrImageUrl = `https://quickchart.io/qr?size=300x300&text=${encodeURIComponent(texto)}`; // Match container size
     const container = document.getElementById("scanner-container");
-    container.style.display = "block";
     container.innerHTML = "";
     const qrImage = document.createElement("img");
     qrImage.src = qrImageUrl;
-    qrImage.style.width = "150px";
-    qrImage.style.height = "150px";
+    qrImage.alt = "Código QR escaneado";
     container.appendChild(qrImage);
 }
 
@@ -154,7 +150,6 @@ function mostrarImagenQR(texto) {
 function registrar(tipo) {
     if (!nombreRegistrado || !ubicacionEncontrada) {
         document.getElementById("actionMessage").textContent = "Registre su nombre y escanee un QR primero.";
-        console.log("Missing name or location");
         return;
     }
 
@@ -165,25 +160,22 @@ function registrar(tipo) {
         tipo: tipo,
         timestamp: tiempoActual.toISOString()
     };
-    console.log("Payload for", tipo, ":", payload);
 
     if (tipo === "Check-in") {
         if (tiempoCheckIn) {
-            document.getElementById("actionMessage").textContent = "Ya ha realizado un Check-in en esta ubicación. Complete el Check-out primero.";
-            console.log("Check-in already exists");
+            document.getElementById("actionMessage").textContent = "Ya ha iniciado un Check-in en esta ubicación.";
             return;
         }
         tiempoCheckIn = tiempoActual;
-        document.getElementById("actionMessage").textContent = `Check-in registrado para ${nombreRegistrado} en ${ubicacionEncontrada.direccion} a las ${tiempoCheckIn.toLocaleTimeString()}`;
+        document.getElementById("actionMessage").textContent = `Check-in iniciado a las ${tiempoCheckIn.toLocaleTimeString()}`;
     } else if (tipo === "Check-out") {
         if (!tiempoCheckIn) {
             document.getElementById("actionMessage").textContent = "Primero debe realizar un Check-in.";
-            console.log("No prior check-in");
             return;
         }
         const tiempoCheckOut = tiempoActual;
         const tiempoTranscurrido = tiempoCheckOut - tiempoCheckIn;
-        document.getElementById("actionMessage").textContent = `Check-out registrado para ${nombreRegistrado} en ${ubicacionEncontrada.direccion} a las ${tiempoCheckOut.toLocaleTimeString()}. Duración: ${formatTiempoTranscurrido(tiempoTranscurrido)}`;
+        document.getElementById("actionMessage").textContent = `Check-out registrado a las ${tiempoCheckOut.toLocaleTimeString()}. Duración: ${formatTiempoTranscurrido(tiempoTranscurrido)}`;
 
         fetch(URL_DEL_SCRIPT, {
             method: "POST",
@@ -192,31 +184,27 @@ function registrar(tipo) {
             body: JSON.stringify(payload)
         })
         .then(response => {
-            console.log("Check-out fetch response status:", response.status);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return response.json();
         })
         .then(data => {
-            console.log("Check-out fetch data:", data);
             if (data.result === "success") {
-                const anotherLocation = confirm("¿Desea registrar otra ubicación?");
+                const anotherLocation = confirm("¿Desea iniciar un nuevo proceso?");
                 if (anotherLocation) {
-                    console.log("User chose to register another location - reloading");
                     window.location.reload();
                 } else {
                     document.getElementById("actionMessage").textContent += " Sesión finalizada.";
                     document.getElementById("checkInBtn").disabled = true;
                     document.getElementById("checkOutBtn").disabled = true;
                     document.getElementById("scanQR").disabled = true;
-                    console.log("Session ended");
                 }
             } else {
-                document.getElementById("actionMessage").textContent = "Error al registrar: " + (data.message || "Desconocido");
+                document.getElementById("actionMessage").textContent = "Error al registrar";
             }
         })
         .catch(error => {
             console.error("Error en check-out:", error);
-            document.getElementById("actionMessage").textContent = "Error al conectar con el servidor: " + error.message;
+            document.getElementById("actionMessage").textContent = "Error al conectar con el servidor";
         });
         return;
     }
@@ -229,13 +217,11 @@ function registrar(tipo) {
         body: JSON.stringify(payload)
     })
     .then(response => {
-        console.log("Check-in fetch response status:", response.status);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.json();
     })
     .catch(error => {
         console.error("Error en check-in:", error);
-        document.getElementById("actionMessage").textContent = "Error al conectar con el servidor: " + error.message;
+        document.getElementById("actionMessage").textContent = "Error al conectar con el servidor";
     });
 }
 
