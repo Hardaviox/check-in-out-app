@@ -1,4 +1,4 @@
-const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbz9tZ131MZ9nEI-GYeN1UHGdhWIJuO2i1aF6DeEw50jkwCLM0mOxRdoVvaGBgYi0IrX/exec"; // Update if redeployed
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwwR9Vmk2hm0TGL0QlP79ADlnRnMPHAJJcjLTP4Sg2wGtfx6MtqhZ0DtR619U52EEz2/exec"; // Updated to match your provided endpoint
 
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 })
                 .catch(error => {
                     console.error("Error en registro:", error);
-                    document.getElementById("regMessage").textContent = "Error al conectar con el servidor";
+                    document.getElementById("regMessage").textContent = "Error al conectar con el servidor: " + error.message;
                 });
             } else {
                 document.getElementById("regMessage").textContent = "Ingrese su nombre";
@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             })
                             .then(ubicaciones => {
                                 console.log("Ubicaciones recibidas:", ubicaciones);
-                                const ubicacion = ubicaciones.find(u => u.id === decodedText);
+                                const ubicacion = ubicaciones.result.find(u => u.id === decodedText);
                                 if (ubicacion) {
                                     console.log("Ubicación encontrada:", ubicacion);
                                     document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion}`;
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             })
                             .catch(error => {
                                 console.error("Error obteniendo ubicaciones:", error);
-                                document.getElementById("qrResult").textContent = "Error al obtener ubicaciones";
+                                document.getElementById("qrResult").textContent = "Error al obtener ubicaciones: " + error.message;
                                 scannerContainer.style.display = "none";
                             });
                     });
@@ -142,10 +142,10 @@ function registrar(tipo) {
     }
 
     const tiempoActual = new Date();
-    let payload = {
+    const payload = {
         usuario: nombreRegistrado,
         ubicacion: ubicacionEncontrada.id,
-        tipo: tipo,
+        tipo: tipo.toLowerCase(), // Ensure consistency with backend ("check-in" or "check-out")
         timestamp: tiempoActual.toISOString()
     };
     console.log("Sending payload for", tipo, ":", payload);
@@ -165,22 +165,24 @@ function registrar(tipo) {
         const tiempoCheckOut = tiempoActual;
         const tiempoTranscurrido = tiempoCheckOut - tiempoCheckIn;
         document.getElementById("actionMessage").textContent = `Check-out registrado a las ${tiempoCheckOut.toLocaleTimeString()}. Duración: ${formatTiempoTranscurrido(tiempoTranscurrido)}`;
+    }
 
-        fetch(URL_DEL_SCRIPT, {
-            method: "POST",
-            mode: "cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        })
-        .then(response => {
-            console.log("Check-out fetch status:", response.status);
-            console.log("Check-out fetch headers:", [...response.headers]);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
-        })
-        .then(data => {
-            console.log("Check-out fetch data:", data);
-            if (data.result === "success") {
+    fetch(URL_DEL_SCRIPT, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        console.log(`${tipo} fetch status:`, response.status);
+        console.log(`${tipo} fetch headers:`, [...response.headers]);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        console.log(`${tipo} fetch data:`, data);
+        if (data.result === "success") {
+            if (tipo === "Check-out") {
                 const anotherLocation = confirm("¿Desea iniciar un nuevo proceso?");
                 if (anotherLocation) {
                     window.location.reload();
@@ -190,39 +192,16 @@ function registrar(tipo) {
                     document.getElementById("checkOutBtn").disabled = true;
                     document.getElementById("scanQR").disabled = true;
                 }
-            } else {
-                document.getElementById("actionMessage").textContent = "Error al registrar: " + (data.message || "Desconocido");
             }
-        })
-        .catch(error => {
-            console.error("Error en check-out:", error);
-            document.getElementById("actionMessage").textContent = "Error al conectar con el servidor";
-        });
-        return;
-    }
-
-    // Save Check-in
-    fetch(URL_DEL_SCRIPT, {
-        method: "POST",
-        mode: "cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    })
-    .then(response => {
-        console.log("Check-in fetch status:", response.status);
-        console.log("Check-in fetch headers:", [...response.headers]);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.json();
-    })
-    .then(data => {
-        console.log("Check-in fetch data:", data);
-        if (data.result !== "success") {
-            document.getElementById("actionMessage").textContent = "Error al registrar: " + (data.message || "Desconocido");
+        } else {
+            document.getElementById("actionMessage").textContent = `Error al registrar ${tipo}: ${data.message || "Desconocido"}`;
+            if (tipo === "Check-in") tiempoCheckIn = null; // Reset on failure
         }
     })
     .catch(error => {
-        console.error("Error en check-in:", error);
-        document.getElementById("actionMessage").textContent = "Error al conectar con el servidor";
+        console.error(`Error en ${tipo}:`, error);
+        document.getElementById("actionMessage").textContent = `Error al conectar con el servidor: ${error.message}`;
+        if (tipo === "Check-in") tiempoCheckIn = null; // Reset on failure
     });
 }
 
