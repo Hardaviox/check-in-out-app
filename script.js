@@ -1,4 +1,4 @@
-const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwv5E1pX2ZhPOPFqANrdGc7HzGW2UjvFIzLLETO9Mm4bshXIsezcDb_pbW2mwN5z-Td/exec";
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwv5E1pX2ZhPOPFqANrdGc7HzGW2UjvFIzLLETO9Mm4bshXIsezcDb_pbW2mwN5z-Td/exec"; // Update if redeployed
 
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
@@ -70,14 +70,17 @@ document.addEventListener("DOMContentLoaded", () => {
                                 return response.json();
                             })
                             .then(ubicaciones => {
+                                console.log("Ubicaciones recibidas:", ubicaciones);
                                 const ubicacion = ubicaciones.find(u => u.id === decodedText);
                                 if (ubicacion) {
+                                    console.log("Ubicación encontrada:", ubicacion);
                                     document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion}`;
                                     ubicacionEncontrada = ubicacion;
                                     tiempoCheckIn = null;
                                     document.getElementById("actionMessage").textContent = "";
                                     mostrarImagenQR(decodedText);
                                 } else {
+                                    console.log("No se encontró ubicación para:", decodedText);
                                     document.getElementById("qrResult").textContent = "Ubicación no encontrada";
                                     scannerContainer.style.display = "none";
                                     ubicacionEncontrada = null;
@@ -132,8 +135,9 @@ function mostrarImagenQR(texto) {
 
 // Registrar check-in/check-out
 function registrar(tipo) {
-    if (!nombreRegistrado || !ubicacionEncontrada) {
-        document.getElementById("actionMessage").textContent = "Registre su nombre y escanee un QR primero.";
+    if (!nombreRegistrado || !ubicacionEncontrada || !ubicacionEncontrada.id) {
+        document.getElementById("actionMessage").textContent = "Registre su nombre y escanee un QR válido primero.";
+        console.log("Registro fallido - Datos faltantes:", { nombreRegistrado, ubicacionEncontrada });
         return;
     }
 
@@ -187,7 +191,7 @@ function registrar(tipo) {
                     document.getElementById("scanQR").disabled = true;
                 }
             } else {
-                document.getElementById("actionMessage").textContent = "Error al registrar";
+                document.getElementById("actionMessage").textContent = "Error al registrar: " + (data.message || "Desconocido");
             }
         })
         .catch(error => {
@@ -213,7 +217,7 @@ function registrar(tipo) {
     .then(data => {
         console.log("Check-in fetch data:", data);
         if (data.result !== "success") {
-            document.getElementById("actionMessage").textContent = "Error al registrar";
+            document.getElementById("actionMessage").textContent = "Error al registrar: " + (data.message || "Desconocido");
         }
     })
     .catch(error => {
