@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check In/Out App</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="quagga.min.js"></script> <!-- Local Quagga library -->
+    <link rel="stylesheet" href="style.css"> <!-- Include if style.css has styles -->
     <style>
+        /* Fallback inline CSS if style.css is empty or not used */
         body { font-family: Arial, sans-serif; text-align: center; padding: 10px; }
         h1 { color: #333; }
         button, input { margin: 5px; padding: 10px; font-size: 16px; width: 200px; }
@@ -43,6 +45,6 @@
         <p id="actionMessage"></p>
     </div>
 
-    <script src="app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
