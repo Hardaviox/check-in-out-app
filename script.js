@@ -3,6 +3,7 @@ const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwv5E1pX2ZhPOPFq
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
 let tiempoCheckIn = null;
+let qrReader = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOM fully loaded - App starting");
@@ -51,51 +52,29 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log("Starting QR scan");
             const scannerContainer = document.getElementById("scanner-container");
             scannerContainer.style.display = "block";
-            scannerContainer.innerHTML = '<video id="videoElement"></video>';
+            scannerContainer.innerHTML = ""; // Clear previous content
 
-            // Request camera permission and initialize Quagga
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                .then(stream => {
-                    Quagga.init({
-                        inputStream: {
-                            name: "Live",
-                            type: "LiveStream",
-                            target: document.querySelector("#scanner-container video"),
-                            constraints: {
-                                facingMode: "environment"
-                            }
-                        },
-                        decoder: { readers: ["qr_code_reader"] }
-                    }, (err) => {
-                        if (err) {
-                            console.error("Error inicializando Quagga:", err);
-                            document.getElementById("qrResult").textContent = "Error al iniciar el escáner";
-                            scannerContainer.style.display = "none";
-                            stream.getTracks().forEach(track => track.stop());
-                            return;
-                        }
-                        console.log("Quagga initialized");
-                        Quagga.start();
-                    });
-
-                    Quagga.onDetected((result) => {
-                        const code = result.codeResult.code;
-                        console.log("Código QR leído:", code);
-                        Quagga.stop();
-                        stream.getTracks().forEach(track => track.stop());
+            // Initialize html5-qrcode scanner
+            qrReader = new Html5Qrcode("scanner-container");
+            qrReader.start(
+                { facingMode: "environment" }, // Use rear camera
+                { fps: 10, qrbox: { width: 250, height: 250 } }, // Config
+                (decodedText) => {
+                    console.log("Código QR leído:", decodedText);
+                    qrReader.stop().then(() => {
                         fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`, { mode: "cors" })
                             .then(response => {
                                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                                 return response.json();
                             })
                             .then(ubicaciones => {
-                                const ubicacion = ubicaciones.find(u => u.id === code);
+                                const ubicacion = ubicaciones.find(u => u.id === decodedText);
                                 if (ubicacion) {
                                     document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion}`;
                                     ubicacionEncontrada = ubicacion;
                                     tiempoCheckIn = null;
                                     document.getElementById("actionMessage").textContent = "";
-                                    mostrarImagenQR(code);
+                                    mostrarImagenQR(decodedText);
                                 } else {
                                     document.getElementById("qrResult").textContent = "Ubicación no encontrada";
                                     scannerContainer.style.display = "none";
@@ -108,12 +87,15 @@ document.addEventListener("DOMContentLoaded", () => {
                                 scannerContainer.style.display = "none";
                             });
                     });
-                })
-                .catch(error => {
-                    console.error("Error accediendo a la cámara:", error);
-                    document.getElementById("qrResult").textContent = "Permiso de cámara denegado o no disponible";
-                    scannerContainer.style.display = "none";
-                });
+                },
+                (error) => {
+                    console.warn("Error durante el escaneo:", error);
+                }
+            ).catch(error => {
+                console.error("Error iniciando el escáner:", error);
+                document.getElementById("qrResult").textContent = "Error al iniciar el escáner o permiso denegado";
+                scannerContainer.style.display = "none";
+            });
         });
     }
 
@@ -137,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Mostrar imagen QR
 function mostrarImagenQR(texto) {
     console.log("Showing QR image for:", texto);
-    const qrImageUrl = `https://quickchart.io/qr?size=300x300&text=${encodeURIComponent(texto)}`; // Match container size
+    const qrImageUrl = `https://quickchart.io/qr?size=300x300&text=${encodeURIComponent(texto)}`;
     const container = document.getElementById("scanner-container");
     container.innerHTML = "";
     const qrImage = document.createElement("img");
