@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const username = document.getElementById("usernameInput").value.trim();
             if (username) {
                 console.log("Registering user:", username);
-                fetch(`<span class="math-inline">\{URL\_DEL\_SCRIPT\}?action\=register&username\=</span>{encodeURIComponent(username)}`, {
+                fetch(`${URL_DEL_SCRIPT}?action=register&username=${encodeURIComponent(username)}`, {
                     method: "GET",
                     mode: "cors",
                     redirect: "follow"
@@ -202,3 +202,6 @@ function registrar(tipo) {
     if (tipo === "Check-in") {
         if (tiempoCheckIn) {
             document.getElementById("actionMessage").textContent = "Ya ha iniciado un Check-in en esta ubicación.";
+        }
+    }
+});
