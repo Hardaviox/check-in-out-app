@@ -1,19 +1,23 @@
 function doGet(e) {
   var params = e ? e.parameter || {} : {};
+  var response;
   if (params.action === "obtenerUbicaciones") {
     try {
-      return sendJsonResponse(obtenerUbicaciones());
+      response = sendJsonResponse(obtenerUbicaciones());
     } catch (error) {
       Logger.log("Error in obtenerUbicaciones: " + error.message);
-      return sendJsonResponse({ result: "error", message: "Error fetching locations: " + error.message });
+      response = sendJsonResponse({ result: "error", message: "Error fetching locations: " + error.message });
     }
   } else if (params.action === "register") {
-    return registerUser(params.username);
+    response = registerUser(params.username);
+  } else {
+    response = sendJsonResponse({ result: "error", message: "Acción no válida" });
   }
-  return sendJsonResponse({ result: "error", message: "Acción no válida" });
+  return response.setHeader('Access-Control-Allow-Origin', '*');
 }
 
 function doPost(e) {
+  var response;
   try {
     Logger.log("doPost function was triggered!");
     if (!e || !e.postData || !e.postData.contents) {
@@ -31,11 +35,12 @@ function doPost(e) {
       throw new Error("Faltan datos obligatorios");
     }
     registrarCheck(usuario, ubicacion, tipo, timestamp);
-    return sendJsonResponse({ result: "success" });
+    response = sendJsonResponse({ result: "success" });
   } catch (error) {
     Logger.log("Error en doPost: " + error.message);
-    return sendJsonResponse({ result: "error", message: error.message });
+    response = sendJsonResponse({ result: "error", message: error.message });
   }
+  return response.setHeader('Access-Control-Allow-Origin', '*');
 }
 
 function doOptions(e) {
@@ -76,8 +81,6 @@ function registerUser(username) {
 }
 
 function sendJsonResponse(data) {
-  var response = ContentService.createTextOutput(JSON.stringify(data))
+  return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
-  response.setHeader('Access-Control-Allow-Origin', '*');
-  return response;
 }
