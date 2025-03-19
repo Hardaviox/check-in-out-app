@@ -1,4 +1,4 @@
-const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbze522qxrnq-gQ8BhN8JTeSlQhE4uQHjctWROjlz9VfSUHVI2xTpnxZjed_PSXLNUU3/exec";
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbyr5uphFFe-tOrGktMp6JNQzKcl_wuindn3JcvqPi87ducgidX9YNfwPsiu1sCX-rWd/exec"; // Updated to match error
 
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
@@ -67,9 +67,11 @@ document.addEventListener("DOMContentLoaded", () => {
                             .then(response => {
                                 console.log("Ubicaciones fetch status:", response.status);
                                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                                return response.json();
+                                return response.text(); // Debug raw response
                             })
-                            .then(ubicaciones => {
+                            .then(text => {
+                                console.log("Raw ubicaciones response:", text);
+                                const ubicaciones = JSON.parse(text);
                                 console.log("Ubicaciones recibidas:", ubicaciones);
                                 const ubicacion = ubicaciones.result.find(u => u.id === decodedText);
                                 if (ubicacion) {
