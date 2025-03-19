@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     redirect: "follow"
                 })
                 .then(response => {
-                    console.log("Register fetch response:", response); // Added console log
+                    console.log("Register fetch response:", response);
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     return response.json();
                 })
@@ -201,4 +201,4 @@ function registrar(tipo) {
 
     if (tipo === "Check-in") {
         if (tiempoCheckIn) {
-            document.getElementById("actionMessage").textContent = "Ya ha iniciado un Check-in
+            document.getElementById("actionMessage").textContent = "Ya ha iniciado un Check-in en esta ubicación.";
