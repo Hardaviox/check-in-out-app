@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 fetch(`${URL_DEL_SCRIPT}?action=register&username=${encodeURIComponent(username)}`, {
                     method: "GET",
                     mode: "cors",
-                    redirect: "follow" // Ensure redirects are handled
+                    redirect: "follow"
                 })
                 .then(response => {
                     console.log("Register fetch response status:", response.status);
