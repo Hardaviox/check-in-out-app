@@ -3,14 +3,8 @@ function doGet(e) {
   if (params.action === "obtenerUbicaciones") {
     return ContentService.createTextOutput(JSON.stringify(obtenerUbicaciones()))
       .setMimeType(ContentService.MimeType.JSON);
-  } else if (params.action === "login") {
-    return ContentService.createTextOutput(JSON.stringify(loginUsuario(params.username, params.password, params.ip)))
-      .setMimeType(ContentService.MimeType.JSON);
   } else if (params.action === "register") {
-    return ContentService.createTextOutput(JSON.stringify(registrarUsuario(params.username, params.password, params.ip)))
-      .setMimeType(ContentService.MimeType.JSON);
-  } else if (params.action === "checkIp") {
-    return ContentService.createTextOutput(JSON.stringify(checkIp(params.ip)))
+    return ContentService.createTextOutput(JSON.stringify({ result: "success" })) // No actual registration needed
       .setMimeType(ContentService.MimeType.JSON);
   }
   return ContentService.createTextOutput(JSON.stringify({ "result": "error", "message": "Acción no válida" }))
@@ -61,50 +55,4 @@ function obtenerUbicaciones() {
   }
   var data = sheet.getDataRange().getValues();
   return data.slice(1).map(row => ({ id: row[0], direccion: row[1] }));
-}
-
-function registrarUsuario(username, password, ip) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName("User") || ss.insertSheet("User");
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(["Username", "Password", "IP"]);
-  }
-  var data = sheet.getDataRange().getValues();
-  var existingUser = data.slice(1).find(row => row[0] === username);
-  if (existingUser) {
-    return { result: "error", message: "El usuario ya está registrado" };
-  }
-  sheet.appendRow([username, password, ip]);
-  return { result: "success" };
-}
-
-function loginUsuario(username, password, ip) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName("User") || ss.insertSheet("User");
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(["Username", "Password", "IP"]);
-  }
-  var data = sheet.getDataRange().getValues();
-  var userRow = data.slice(1).find(row => row[0] === username && row[1] === password);
-  if (userRow) {
-    var rowIndex = data.indexOf(userRow) + 1;
-    sheet.getRange(rowIndex, 3).setValue(ip); // Update IP
-    return { result: "success" };
-  }
-  return { result: "error", message: "Usuario o contraseña incorrectos" };
-}
-
-function checkIp(ip) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName("User") || ss.insertSheet("User");
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(["Username", "Password", "IP"]);
-    return { result: "error" };
-  }
-  var data = sheet.getDataRange().getValues();
-  var userRow = data.slice(1).find(row => row[2] === ip);
-  if (userRow) {
-    return { result: "success", username: userRow[0] };
-  }
-  return { result: "error" };
 }
