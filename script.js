@@ -21,10 +21,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     redirect: "follow"
                 })
                 .then(response => {
+                    console.log("Register fetch status:", response.status);
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     return response.json();
                 })
                 .then(data => {
+                    console.log("Register fetch data:", data);
                     if (data.result === "success") {
                         nombreRegistrado = username;
                         document.getElementById("regMessage").textContent = "Nombre registrado";
@@ -52,18 +54,18 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log("Starting QR scan");
             const scannerContainer = document.getElementById("scanner-container");
             scannerContainer.style.display = "block";
-            scannerContainer.innerHTML = ""; // Clear previous content
+            scannerContainer.innerHTML = "";
 
-            // Initialize html5-qrcode scanner
             qrReader = new Html5Qrcode("scanner-container");
             qrReader.start(
-                { facingMode: "environment" }, // Use rear camera
-                { fps: 10, qrbox: { width: 250, height: 250 } }, // Config
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
                 (decodedText) => {
                     console.log("Código QR leído:", decodedText);
                     qrReader.stop().then(() => {
                         fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`, { mode: "cors" })
                             .then(response => {
+                                console.log("Ubicaciones fetch status:", response.status);
                                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                                 return response.json();
                             })
@@ -142,6 +144,7 @@ function registrar(tipo) {
         tipo: tipo,
         timestamp: tiempoActual.toISOString()
     };
+    console.log("Sending payload for", tipo, ":", payload);
 
     if (tipo === "Check-in") {
         if (tiempoCheckIn) {
@@ -166,10 +169,13 @@ function registrar(tipo) {
             body: JSON.stringify(payload)
         })
         .then(response => {
+            console.log("Check-out fetch status:", response.status);
+            console.log("Check-out fetch headers:", [...response.headers]);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return response.json();
         })
         .then(data => {
+            console.log("Check-out fetch data:", data);
             if (data.result === "success") {
                 const anotherLocation = confirm("¿Desea iniciar un nuevo proceso?");
                 if (anotherLocation) {
@@ -199,7 +205,16 @@ function registrar(tipo) {
         body: JSON.stringify(payload)
     })
     .then(response => {
+        console.log("Check-in fetch status:", response.status);
+        console.log("Check-in fetch headers:", [...response.headers]);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        console.log("Check-in fetch data:", data);
+        if (data.result !== "success") {
+            document.getElementById("actionMessage").textContent = "Error al registrar";
+        }
     })
     .catch(error => {
         console.error("Error en check-in:", error);
