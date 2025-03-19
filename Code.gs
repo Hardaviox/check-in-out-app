@@ -1,23 +1,22 @@
 function doGet(e) {
   var params = e ? e.parameter || {} : {};
-  var response;
   if (params.action === "obtenerUbicaciones") {
     try {
-      response = sendJsonResponse(obtenerUbicaciones());
+      return ContentService.createTextOutput(JSON.stringify(obtenerUbicaciones()))
+        .setMimeType(ContentService.MimeType.JSON);
     } catch (error) {
       Logger.log("Error in obtenerUbicaciones: " + error.message);
-      response = sendJsonResponse({ result: "error", message: "Error fetching locations: " + error.message });
+      return ContentService.createTextOutput(JSON.stringify({ result: "error", message: "Error fetching locations: " + error.message }))
+        .setMimeType(ContentService.MimeType.JSON);
     }
   } else if (params.action === "register") {
-    response = registerUser(params.username);
-  } else {
-    response = sendJsonResponse({ result: "error", message: "Acción no válida" });
+    return registerUser(params.username);
   }
-  return response.setHeader('Access-Control-Allow-Origin', '*');
+  return ContentService.createTextOutput(JSON.stringify({ result: "error", message: "Acción no válida" }))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
-  var response;
   try {
     Logger.log("doPost function was triggered!");
     if (!e || !e.postData || !e.postData.contents) {
@@ -35,21 +34,18 @@ function doPost(e) {
       throw new Error("Faltan datos obligatorios");
     }
     registrarCheck(usuario, ubicacion, tipo, timestamp);
-    response = sendJsonResponse({ result: "success" });
+    return ContentService.createTextOutput(JSON.stringify({ result: "success" }))
+      .setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
     Logger.log("Error en doPost: " + error.message);
-    response = sendJsonResponse({ result: "error", message: error.message });
+    return ContentService.createTextOutput(JSON.stringify({ result: "error", message: error.message }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
-  return response.setHeader('Access-Control-Allow-Origin', '*');
 }
 
 function doOptions(e) {
-  var response = ContentService.createTextOutput('')
+  return ContentService.createTextOutput('')
     .setMimeType(ContentService.MimeType.JSON);
-  response.setHeader('Access-Control-Allow-Origin', '*');
-  response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  return response;
 }
 
 function registrarCheck(usuario, ubicacion, tipo, timestamp) {
@@ -72,15 +68,12 @@ function obtenerUbicaciones() {
 
 function registerUser(username) {
   if (!username) {
-    return sendJsonResponse({ result: "error", message: "Nombre de usuario requerido" });
+    return ContentService.createTextOutput(JSON.stringify({ result: "error", message: "Nombre de usuario requerido" }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Usuarios");
   sheet.appendRow([username]);
   Logger.log(`User registered: ${username}`);
-  return sendJsonResponse({ result: "success" });
-}
-
-function sendJsonResponse(data) {
-  return ContentService.createTextOutput(JSON.stringify(data))
+  return ContentService.createTextOutput(JSON.stringify({ result: "success" }))
     .setMimeType(ContentService.MimeType.JSON);
 }
