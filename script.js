@@ -1,4 +1,4 @@
-const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwehFZezRnEInYhMFVv_pgK9kRzVn0tvvOUylXS1KBWDZdZVgn2cRuag7r78NCdo_hP/exec"; // Updated to match your provided endpoint
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwQXDwSMXisYvKRrkdeW013Y3990pJ3W1g4hX-VBBb038bUKdCg1W3GSSuTlO1aAMOI/exec";
 
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const username = document.getElementById("usernameInput").value.trim();
             if (username) {
                 console.log("Registering user:", username);
-                fetch(`${URL_DEL_SCRIPT}?action=register&username=${encodeURIComponent(username)}`, {
+                fetch(`<span class="math-inline">\{URL\_DEL\_SCRIPT\}?action\=register&username\=</span>{encodeURIComponent(username)}`, {
                     method: "GET",
                     mode: "cors",
                     redirect: "follow"
@@ -65,23 +65,30 @@ document.addEventListener("DOMContentLoaded", () => {
                     qrReader.stop().then(() => {
                         fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`, { mode: "cors" })
                             .then(response => {
-                                console.log("Ubicaciones fetch status:", response.status);
+                                console.log("Ubicaciones fetch response:", response);
                                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                                 return response.json();
                             })
                             .then(ubicaciones => {
                                 console.log("Ubicaciones recibidas:", ubicaciones);
-                                const ubicacion = ubicaciones.result.find(u => u.id === decodedText);
-                                if (ubicacion) {
-                                    console.log("Ubicación encontrada:", ubicacion);
-                                    document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion}`;
-                                    ubicacionEncontrada = ubicacion;
-                                    tiempoCheckIn = null;
-                                    document.getElementById("actionMessage").textContent = "";
-                                    mostrarImagenQR(decodedText);
+                                if (ubicaciones && ubicaciones.result && Array.isArray(ubicaciones.result)) {
+                                    const ubicacion = ubicaciones.result.find(u => u.id === decodedText);
+                                    if (ubicacion) {
+                                        console.log("Ubicación encontrada:", ubicacion);
+                                        document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion}`;
+                                        ubicacionEncontrada = ubicacion;
+                                        tiempoCheckIn = null;
+                                        document.getElementById("actionMessage").textContent = "";
+                                        mostrarImagenQR(decodedText);
+                                    } else {
+                                        console.log("No se encontró ubicación para:", decodedText);
+                                        document.getElementById("qrResult").textContent = "Ubicación no encontrada";
+                                        scannerContainer.style.display = "none";
+                                        ubicacionEncontrada = null;
+                                    }
                                 } else {
-                                    console.log("No se encontró ubicación para:", decodedText);
-                                    document.getElementById("qrResult").textContent = "Ubicación no encontrada";
+                                    console.error("Error: ubicaciones.result is not valid:", ubicaciones);
+                                    document.getElementById("qrResult").textContent = "Error: Datos de ubicaciones inválidos.";
                                     scannerContainer.style.display = "none";
                                     ubicacionEncontrada = null;
                                 }
@@ -135,6 +142,7 @@ function mostrarImagenQR(texto) {
 
 // Registrar check-in/check-out
 function registrar(tipo) {
+    console.log("registrar function called");
     if (!nombreRegistrado || !ubicacionEncontrada || !ubicacionEncontrada.id) {
         document.getElementById("actionMessage").textContent = "Registre su nombre y escanee un QR válido primero.";
         console.log("Registro fallido - Datos faltantes:", { nombreRegistrado, ubicacionEncontrada });
@@ -145,10 +153,11 @@ function registrar(tipo) {
     const payload = {
         usuario: nombreRegistrado,
         ubicacion: ubicacionEncontrada.id,
-        tipo: tipo.toLowerCase(), // Ensure consistency with backend ("check-in" or "check-out")
+        tipo: tipo.toLowerCase(),
         timestamp: tiempoActual.toISOString()
     };
-    console.log("Sending payload for", tipo, ":", payload);
+    console.log("Sending POST request:", payload);
+    console.log("Fetch options:", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
 
     if (tipo === "Check-in") {
         if (tiempoCheckIn) {
@@ -176,39 +185,4 @@ function registrar(tipo) {
     .then(response => {
         console.log(`${tipo} fetch status:`, response.status);
         console.log(`${tipo} fetch headers:`, [...response.headers]);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.json();
-    })
-    .then(data => {
-        console.log(`${tipo} fetch data:`, data);
-        if (data.result === "success") {
-            if (tipo === "Check-out") {
-                const anotherLocation = confirm("¿Desea iniciar un nuevo proceso?");
-                if (anotherLocation) {
-                    window.location.reload();
-                } else {
-                    document.getElementById("actionMessage").textContent += " Sesión finalizada.";
-                    document.getElementById("checkInBtn").disabled = true;
-                    document.getElementById("checkOutBtn").disabled = true;
-                    document.getElementById("scanQR").disabled = true;
-                }
-            }
-        } else {
-            document.getElementById("actionMessage").textContent = `Error al registrar ${tipo}: ${data.message || "Desconocido"}`;
-            if (tipo === "Check-in") tiempoCheckIn = null; // Reset on failure
-        }
-    })
-    .catch(error => {
-        console.error(`Error en ${tipo}:`, error);
-        document.getElementById("actionMessage").textContent = `Error al conectar con el servidor: ${error.message}`;
-        if (tipo === "Check-in") tiempoCheckIn = null; // Reset on failure
-    });
-}
-
-// Formatear tiempo
-function formatTiempoTranscurrido(tiempo) {
-    const segundos = Math.floor(tiempo / 1000) % 60;
-    const minutos = Math.floor(tiempo / (1000 * 60)) % 60;
-    const horas = Math.floor(tiempo / (1000 * 60 * 60));
-    return `${horas}h ${minutos}m ${segundos}s`;
-}
+        if (!response.ok) throw
