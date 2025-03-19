@@ -1,36 +1,20 @@
 const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbyq1bRRwEFD81U4OiIArX995N8sHmGPUshVgNxovhgcHos_liyCczh_GqSfEi3eVyyz/exec"; // Update with your Web App URL
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
-let tiempoCheckIn = null;
+let tiempoCheckIn = null; // Tracks check-in time for the current QR
 
 document.addEventListener("DOMContentLoaded", () => {
     // Get user IP for auto-login
     fetch("https://api.ipify.org?format=json")
         .then(response => response.json())
-        .then(data => {
-            const userIp = data.ip;
-            checkIpForAutoLogin(userIp);
-        })
+        .then(data => checkIpForAutoLogin(data.ip))
         .catch(error => console.error("Error obteniendo IP:", error));
-
-    // Show registration form
-    document.getElementById("showRegisterBtn").addEventListener("click", () => {
-        document.getElementById("loginForm").style.display = "none";
-        document.getElementById("registerForm").style.display = "block";
-    });
-
-    // Show login form
-    document.getElementById("showLoginBtn").addEventListener("click", () => {
-        document.getElementById("registerForm").style.display = "none";
-        document.getElementById("loginForm").style.display = "block";
-    });
 
     // Register
     document.getElementById("registerBtn").addEventListener("click", () => {
-        const username = document.getElementById("regUsernameInput").value.trim();
-        const phone = document.getElementById("regPhoneInput").value.trim();
-        const password = phone.slice(-4); // Last 4 digits
-        if (username && phone.length >= 4) {
+        const username = document.getElementById("usernameInput").value.trim();
+        const password = document.getElementById("passwordInput").value.trim();
+        if (username && password.length === 4 && /^\d{4}$/.test(password)) {
             fetch("https://api.ipify.org?format=json")
                 .then(response => response.json())
                 .then(data => {
@@ -42,20 +26,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     .then(response => response.json())
                     .then(data => {
                         if (data.result === "success") {
-                            alert("Registro exitoso. Ahora puede iniciar sesión.");
-                            document.getElementById("registerForm").style.display = "none";
-                            document.getElementById("loginForm").style.display = "block";
+                            document.getElementById("authMessage").textContent = `Usuario ${username} registrado exitosamente. Ahora puede iniciar sesión.`;
+                            document.getElementById("usernameInput").value = "";
+                            document.getElementById("passwordInput").value = "";
                         } else {
-                            document.getElementById("regError").textContent = data.message || "Error al registrar";
+                            document.getElementById("authMessage").textContent = data.message || "Error al registrar";
                         }
                     })
                     .catch(error => {
                         console.error("Error en registro:", error);
-                        document.getElementById("regError").textContent = "Error al conectar con el servidor";
+                        document.getElementById("authMessage").textContent = "Error al conectar con el servidor";
                     });
                 });
         } else {
-            document.getElementById("regError").textContent = "Ingrese nombre y número de teléfono válido (mínimo 4 dígitos)";
+            document.getElementById("authMessage").textContent = "Ingrese nombre y 4 dígitos numéricos como contraseña";
         }
     });
 
@@ -79,17 +63,18 @@ document.addEventListener("DOMContentLoaded", () => {
                             document.getElementById("authSection").style.display = "none";
                             document.getElementById("appSection").style.display = "block";
                             document.getElementById("welcomeMessage").textContent = `Bienvenido, ${username}`;
+                            document.getElementById("authMessage").textContent = "";
                         } else {
-                            document.getElementById("authError").textContent = data.message || "Error de inicio de sesión";
+                            document.getElementById("authMessage").textContent = data.message || "Error de inicio de sesión";
                         }
                     })
                     .catch(error => {
                         console.error("Error en login:", error);
-                        document.getElementById("authError").textContent = "Error al conectar con el servidor";
+                        document.getElementById("authMessage").textContent = "Error al conectar con el servidor";
                     });
                 });
         } else {
-            document.getElementById("authError").textContent = "Ingrese nombre y contraseña";
+            document.getElementById("authMessage").textContent = "Ingrese nombre y contraseña";
         }
     });
 
@@ -129,6 +114,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (ubicacion) {
                         document.getElementById("qrResult").textContent = `Ubicación: ${ubicacion.direccion} - ID: ${ubicacion.id}`;
                         ubicacionEncontrada = ubicacion;
+                        tiempoCheckIn = null; // Reset check-in time for new QR
+                        document.getElementById("actionMessage").textContent = ""; // Clear previous message
                         mostrarImagenQR(code);
                     } else {
                         document.getElementById("qrResult").textContent = "Ubicación no encontrada";
@@ -158,6 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("usernameInput").value = "";
         document.getElementById("passwordInput").value = "";
         document.getElementById("qrResult").textContent = "";
+        document.getElementById("actionMessage").textContent = "";
         document.getElementById("scanner-container").innerHTML = "";
     });
 });
@@ -193,7 +181,7 @@ function mostrarImagenQR(texto) {
 // Registrar check-in/check-out
 function registrar(tipo) {
     if (!nombreRegistrado || !ubicacionEncontrada) {
-        alert("Inicie sesión y escanee un QR primero.");
+        document.getElementById("actionMessage").textContent = "Inicie sesión y escanee un QR primero.";
         return;
     }
 
@@ -206,55 +194,17 @@ function registrar(tipo) {
     };
 
     if (tipo === "Check-in") {
+        if (tiempoCheckIn) {
+            document.getElementById("actionMessage").textContent = "Ya ha realizado un Check-in en esta ubicación. Complete el Check-out primero.";
+            return;
+        }
         tiempoCheckIn = tiempoActual;
-        alert("Check-in iniciado en: " + tiempoCheckIn.toLocaleTimeString());
+        document.getElementById("actionMessage").textContent = `Check-in registrado para ${nombreRegistrado} en ${ubicacionEncontrada.direccion} a las ${tiempoCheckIn.toLocaleTimeString()}`;
     } else if (tipo === "Check-out") {
         if (!tiempoCheckIn) {
-            alert("Primero debe realizar un Check-in.");
+            document.getElementById("actionMessage").textContent = "Primero debe realizar un Check-in.";
             return;
         }
         const tiempoCheckOut = tiempoActual;
         const tiempoTranscurrido = tiempoCheckOut - tiempoCheckIn;
-        alert("Check-out finalizado en: " + tiempoCheckOut.toLocaleTimeString() + "\nTiempo transcurrido: " + formatTiempoTranscurrido(tiempoTranscurrido));
-    }
-
-    fetch(URL_DEL_SCRIPT, {
-        method: "POST",
-        mode: "cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    })
-    .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.json();
-    })
-    .then(data => {
-        if (data.result === "success") {
-            alert("Registro exitoso.");
-            if (tipo === "Check-out") resetApp();
-        } else {
-            alert("Error al registrar: " + (data.message || "Desconocido"));
-        }
-    })
-    .catch(error => {
-        console.error("Error en la solicitud:", error);
-        alert("Error al conectar con el servidor: " + error.message);
-    });
-}
-
-// Formatear tiempo
-function formatTiempoTranscurrido(tiempo) {
-    const segundos = Math.floor(tiempo / 1000) % 60;
-    const minutos = Math.floor(tiempo / (1000 * 60)) % 60;
-    const horas = Math.floor(tiempo / (1000 * 60 * 60));
-    return `${horas}h ${minutos}m ${segundos}s`;
-}
-
-// Reset app
-function resetApp() {
-    ubicacionEncontrada = null;
-    tiempoCheckIn = null;
-    document.getElementById("qrResult").textContent = "";
-    document.getElementById("scanner-container").innerHTML = "";
-    document.getElementById("scanner-container").style.display = "none";
-}
+        document.getElementById("actionMessage").textContent = `Check-out registrado para ${nombreRegistr
