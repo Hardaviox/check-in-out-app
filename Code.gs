@@ -1,7 +1,12 @@
 function doGet(e) {
   var params = e ? e.parameter || {} : {};
   if (params.action === "obtenerUbicaciones") {
-    return sendJsonResponse(obtenerUbicaciones());
+    try {
+      return sendJsonResponse(obtenerUbicaciones());
+    } catch (error) {
+      Logger.log("Error in obtenerUbicaciones: " + error.message);
+      return sendJsonResponse({ result: "error", message: "Error fetching locations: " + error.message });
+    }
   } else if (params.action === "register") {
     return registerUser(params.username);
   }
@@ -50,8 +55,13 @@ function registrarCheck(usuario, ubicacion, tipo, timestamp) {
 
 function obtenerUbicaciones() {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Ubicaciones");
+  if (!sheet) {
+    throw new Error("Sheet 'Ubicaciones' not found");
+  }
   var data = sheet.getDataRange().getValues();
+  Logger.log("Ubicaciones data: " + JSON.stringify(data));
   var ubicaciones = data.slice(1).map(row => ({ id: row[0], direccion: row[1] }));
+  Logger.log("Parsed ubicaciones: " + JSON.stringify(ubicaciones));
   return { result: ubicaciones };
 }
 
