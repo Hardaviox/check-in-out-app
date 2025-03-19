@@ -1,4 +1,4 @@
-const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbznUd_MIZEaN7kZIbVHmZWUGaDZeN8yemDeUaVJpOFXIl7fdY-GHBr3TndUH8ULn7M0/exec";
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbzYQH2stKT_Y42ATJn_BM6JORYn65kB_RTcuIBnK8e3KapgsHDpSNlCMivtQgGBPbEZ/exec";
 
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
