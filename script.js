@@ -1,4 +1,4 @@
-const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwNhBxxAm4O8YbyxlE9YrJLj3pkYi2zvtOUKv67kBxkyXdlqGz72r3WfnemhM4faxrR/exec"; // Replace with your new deployment URL if different
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbyr5uphFFe-tOrGktMp6JNQzKcl_wuindn3JcvqPi87ducgidX9YNfwPsiu1sCX-rWd/exec";
 
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
@@ -22,9 +22,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 })
                 .then(response => {
                     console.log("Register fetch status:", response.status);
-                    console.log("Register fetch headers:", [...response.headers]); // Debug headers
+                    console.log("Register fetch headers:", [...response.headers]);
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    return response.text(); // Debug raw response
+                    return response.text();
                 })
                 .then(text => {
                     console.log("Raw register response:", text);
@@ -69,9 +69,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`, { mode: "cors" })
                             .then(response => {
                                 console.log("Ubicaciones fetch status:", response.status);
-                                console.log("Ubicaciones fetch headers:", [...response.headers]); // Debug headers
+                                console.log("Ubicaciones fetch headers:", [...response.headers]);
                                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                                return response.text(); // Debug raw response
+                                return response.text();
                             })
                             .then(text => {
                                 console.log("Raw ubicaciones response:", text);
