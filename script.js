@@ -1,4 +1,4 @@
-const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwv5E1pX2ZhPOPFqANrdGc7HzGW2UjvFIzLLETO9Mm4bshXIsezcDb_pbW2mwN5z-Td/exec"; // Update if redeployed
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbz9tZ131MZ9nEI-GYeN1UHGdhWIJuO2i1aF6DeEw50jkwCLM0mOxRdoVvaGBgYi0IrX/exec"; // Update if redeployed
 
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
