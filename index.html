@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check In/Out App</title>
-    <script src="quagga.min.js"></script>
-    <link rel="stylesheet" href="style.css"> <!-- Remove if style.css is unused -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script> <!-- html5-qrcode CDN -->
+    <link rel="stylesheet" href="style.css"> <!-- Remove if unused -->
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 10px; }
         h1 { color: #333; }
@@ -17,7 +17,7 @@
             margin: 10px auto;
             display: none;
         }
-        #scanner-container video, #scanner-container img { width: 100%; height: 100%; }
+        #scanner-container img { width: 100%; height: 100%; }
         #qrResult, #actionMessage { color: #333; }
         #nameSection { display: block; }
         #appSection { display: none; }
