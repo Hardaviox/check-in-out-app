@@ -1,4 +1,4 @@
-const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbzYQH2stKT_Y42ATJn_BM6JORYn65kB_RTcuIBnK8e3KapgsHDpSNlCMivtQgGBPbEZ/exec";
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwNhBxxAm4O8YbyxlE9YrJLj3pkYi2zvtOUKv67kBxkyXdlqGz72r3WfnemhM4faxrR/exec";
 
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.log("Registering user:", username);
                 fetch(`${URL_DEL_SCRIPT}?action=register&username=${encodeURIComponent(username)}`, {
                     method: "GET",
-                    mode: "no-cors",
+                    mode: "no-cors", // Changed to no-cors
                     redirect: "follow"
                 })
                 .then(response => {
@@ -58,12 +58,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`, { mode: "no-cors" })
                             .then(response => {
                                 console.log("Ubicaciones fetch status:", response.status); // 0 with no-cors
-                                // Since we can't read the response, use a hardcoded list or fetch via proxy later
+                                // Hardcoded locations since we can't fetch with no-cors
                                 const ubicaciones = {
                                     result: [
                                         { id: "1", direccion: "Direccion 1" },
                                         { id: "2", direccion: "Direccion 2" }
-                                        // Add your actual locations from "Ubicaciones" sheet here
+                                        // Replace with your actual "Ubicaciones" sheet data
                                     ]
                                 };
                                 console.log("Hardcoded ubicaciones:", ubicaciones);
@@ -165,7 +165,7 @@ function registrar(tipo) {
 
     fetch(`${URL_DEL_SCRIPT}?action=registrar`, {
         method: "POST",
-        mode: "no-cors",
+        mode: "no-cors", // Changed to no-cors
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     })
