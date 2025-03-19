@@ -1,4 +1,4 @@
-const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbyr5uphFFe-tOrGktMp6JNQzKcl_wuindn3JcvqPi87ducgidX9YNfwPsiu1sCX-rWd/exec"; // Updated to match error
+const URL_DEL_SCRIPT = "https://script.google.com/macros/s/AKfycbwNhBxxAm4O8YbyxlE9YrJLj3pkYi2zvtOUKv67kBxkyXdlqGz72r3WfnemhM4faxrR/exec"; // Replace with your new deployment URL if different
 
 let ubicacionEncontrada = null;
 let nombreRegistrado = null;
@@ -22,10 +22,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 })
                 .then(response => {
                     console.log("Register fetch status:", response.status);
+                    console.log("Register fetch headers:", [...response.headers]); // Debug headers
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    return response.json();
+                    return response.text(); // Debug raw response
                 })
-                .then(data => {
+                .then(text => {
+                    console.log("Raw register response:", text);
+                    const data = JSON.parse(text);
                     console.log("Register fetch data:", data);
                     if (data.result === "success") {
                         nombreRegistrado = username;
@@ -66,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         fetch(`${URL_DEL_SCRIPT}?action=obtenerUbicaciones`, { mode: "cors" })
                             .then(response => {
                                 console.log("Ubicaciones fetch status:", response.status);
+                                console.log("Ubicaciones fetch headers:", [...response.headers]); // Debug headers
                                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                                 return response.text(); // Debug raw response
                             })
