@@ -4,7 +4,7 @@ function doGet(e) {
     return ContentService.createTextOutput(JSON.stringify(obtenerUbicaciones()))
       .setMimeType(ContentService.MimeType.JSON);
   } else if (params.action === "register") {
-    return ContentService.createTextOutput(JSON.stringify({ result: "success" })) // No actual registration needed
+    return ContentService.createTextOutput(JSON.stringify({ result: "success" }))
       .setMimeType(ContentService.MimeType.JSON);
   }
   return ContentService.createTextOutput(JSON.stringify({ "result": "error", "message": "Acción no válida" }))
